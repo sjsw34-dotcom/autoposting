@@ -1,0 +1,25 @@
+{
+  "name": "social-autoposter",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test-post": "npx tsx scripts/test-post.ts"
+  },
+  "dependencies": {
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "@anthropic-ai/sdk": "^0.78.0",
+    "@vercel/postgres": "^0.10.0",
+    "twitter-api-v2": "^1.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.0",
+    "typescript": "^5.5.0"
+  }
+}

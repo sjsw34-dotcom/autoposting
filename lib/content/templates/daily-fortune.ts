@@ -1,0 +1,53 @@
+import type { Platform } from '@/lib/db/posts';
+
+const ELEMENTS = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'] as const;
+
+export function getRandomElement(): string {
+  return ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
+}
+
+const DAILY_ANGLES = [
+  'how today\'s energy affects your productivity',
+  'what to watch out for in conversations today',
+  'the best time of day to make important decisions',
+  'why you might feel restless (or calm) today',
+  'how today\'s elemental clash affects relationships',
+  'a specific action to align with today\'s energy',
+  'what today\'s energy means for creative projects',
+  'how to handle conflict with today\'s Five Element dynamics',
+] as const;
+
+export function getDailyFortunePrompt(platform: Platform): string {
+  const element = getRandomElement();
+  const angle = DAILY_ANGLES[Math.floor(Math.random() * DAILY_ANGLES.length)];
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  const base = `You're a real person who does daily Saju energy readings. Not a horoscope bot — you actually analyze the Five Elements for each day and share what you find. Today you noticed something about ${element} energy.
+
+Date: ${today}
+Focus: ${element} element
+Angle: ${angle}
+
+Your voice:
+- You sound like you just checked the chart this morning and are sharing what stood out
+- Be specific, not vague fortune cookie stuff
+- Give ONE concrete actionable tip
+- You sometimes admit when a day's chart is confusing or contradictory
+- You DON'T use "embrace" or "navigate" or "harness"`;
+
+  if (platform === 'threads') {
+    return `${base}
+
+Write a Threads post (100-500 characters). Just the post, nothing else.`;
+  }
+
+  if (platform === 'x') {
+    return `${base}
+
+Write a tweet (max 280 characters). Just the tweet, nothing else.`;
+  }
+
+  return `${base}
+
+Write a Medium article (1000-2000 words) with markdown headings. Just the article, nothing else.`;
+}
