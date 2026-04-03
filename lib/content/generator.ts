@@ -142,7 +142,7 @@ ${shouldIncludeLink && options?.linkStyle ? `\nLink style: ${options.linkStyle}`
   const temperature = 0.7 + Math.random() * 0.3;
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6-20250514',
+    model: 'claude-sonnet-4-5-20241022',
     max_tokens: platform === 'medium' ? 4096 : 512,
     temperature,
     system: humanizedSystem,
