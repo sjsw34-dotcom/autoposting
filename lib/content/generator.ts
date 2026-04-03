@@ -27,12 +27,12 @@ const PROMPT_MAP: Record<ContentType, (platform: Platform) => string> = {
 
 const BRAND_LINKS: Record<Brand, { main: string; cta: string }> = {
   sajumuse: {
-    main: 'https://www.sajumuse.com',
-    cta: 'https://www.sajumuse.com/free-reading',
+    main: 'https://www.amormuse.com',
+    cta: 'https://www.amormuse.com/chat',
   },
   amormuse: {
     main: 'https://www.amormuse.com',
-    cta: 'https://www.amormuse.com',
+    cta: 'https://www.amormuse.com/chat',
   },
 };
 
@@ -191,8 +191,8 @@ function appendLink(text: string, url: string, platform: Platform): string {
 
 export function insertMediumCTAs(
   content: string,
-  sajumuseUrl: string = 'https://www.sajumuse.com/free-reading',
-  amormuseUrl: string = 'https://www.amormuse.com'
+  sajumuseUrl: string = 'https://www.amormuse.com/chat',
+  amormuseUrl: string = 'https://www.amormuse.com/chat'
 ): string {
   const lines = content.split('\n');
   const totalLines = lines.length;
