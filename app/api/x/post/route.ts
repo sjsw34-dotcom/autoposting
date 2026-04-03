@@ -33,11 +33,6 @@ export async function GET(request: Request) {
       continue;
     }
 
-    // 인간적 딜레이
-    if (humanDecision.delaySeconds > 0) {
-      await new Promise(resolve => setTimeout(resolve, humanDecision.delaySeconds * 1000));
-    }
-
     const contentType = getXContentType(slot);
 
     try {
@@ -96,11 +91,7 @@ export async function GET(request: Request) {
       results.push({ account: accountId, status: 'error', error: message });
     }
 
-    // 멀티계정 시 자연스러운 딜레이
-    if (accounts.length > 1) {
-      const switchDelay = 120000 + Math.random() * 180000;
-      await new Promise(resolve => setTimeout(resolve, switchDelay));
-    }
+    // 멀티계정은 별도 cron으로 분리 (Vercel 10초 제한)
   }
 
   return NextResponse.json({ status: 'completed', results });

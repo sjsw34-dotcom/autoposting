@@ -150,18 +150,14 @@ function gaussianRandom(mean: number, stdDev: number): number {
 /**
  * 인간적 포스팅 딜레이 계산 (초)
  *
- * 사람이 "아, 올려야지" 생각하고 실제 올리기까지의 시간:
- * - 보통 5~30분 지연
- * - 가끔 1시간 넘게 늦음
- * - 아주 드물게 바로 올림
- *
- * 가우시안 분포: 평균 15분, 표준편차 10분
+ * Vercel Serverless는 10초 제한이므로 sleep 불가.
+ * 대신 0을 반환하고, 인간적 타이밍은 다음으로 달성:
+ * 1. Cron 시간 자체가 매 슬롯 다른 분(minute)에 호출
+ * 2. shouldSkipToday / shouldPostThisSlot 으로 불규칙성 확보
+ * 3. 콘텐츠 생성 자체에 1~3초 소요 (자연스러운 지연)
  */
 export function getHumanDelay(): number {
-  const delayMinutes = gaussianRandom(15, 10);
-  // 최소 2분, 최대 45분으로 클램프
-  const clamped = Math.max(2, Math.min(45, delayMinutes));
-  return Math.floor(clamped * 60); // 초 단위 반환
+  return 0; // Vercel Serverless 환경 — sleep 불가
 }
 
 // ============================================================

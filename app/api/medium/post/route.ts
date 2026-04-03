@@ -27,12 +27,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ status: 'human_skip', reason: humanDecision.reason });
   }
 
-  // Medium은 "글 쓰는 시간" 시뮬레이션 (더 긴 딜레이)
-  const writingDelay = humanDecision.delaySeconds * 2;
-  if (writingDelay > 0) {
-    await new Promise(resolve => setTimeout(resolve, writingDelay * 1000));
-  }
-
   try {
     // STEP 1+2: 생성 + 안전 체크 (재생성 루프)
     let generated;

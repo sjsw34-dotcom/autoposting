@@ -26,11 +26,6 @@ export async function GET(request: Request) {
     });
   }
 
-  // 인간적 딜레이
-  if (humanDecision.delaySeconds > 0) {
-    await new Promise(resolve => setTimeout(resolve, humanDecision.delaySeconds * 1000));
-  }
-
   const contentType = getThreadsContentType(slot);
 
   try {
