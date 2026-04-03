@@ -90,6 +90,7 @@ export async function generateContent(
   options?: {
     brand?: Brand;
     includeLink?: boolean;
+    linkUrl?: string;
     linkStyle?: string;
     accountId?: string;
   }
@@ -164,12 +165,11 @@ ${shouldIncludeLink && options?.linkStyle ? `\nLink style: ${options.linkStyle}`
   // "Here's your post:" 같은 메타 텍스트 제거
   text = text.replace(/^(here'?s?\s*(your|the|a)\s*(post|tweet|thread)[:\s]*)/i, '').trim();
 
-  // 링크 추가 (요청된 경우)
+  // 링크 추가 (요청된 경우, human-behavior가 URL 결정)
   let hasLink = false;
   let linkUrl: string | undefined;
   if (shouldIncludeLink && platform !== 'medium') {
-    const links = BRAND_LINKS[brand];
-    linkUrl = links.cta;
+    linkUrl = options?.linkUrl || BRAND_LINKS[brand].cta;
     text = appendLink(text, linkUrl, platform);
     hasLink = true;
   }

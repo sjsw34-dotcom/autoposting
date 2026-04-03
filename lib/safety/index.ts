@@ -25,6 +25,7 @@ export interface HumanDecision {
   reason?: string;
   todayEnergy: number;
   includeLink: boolean;
+  linkUrl?: string;
   linkStyle?: string;
   delaySeconds: number;
 }
@@ -77,6 +78,7 @@ export async function makeHumanDecision(
     shouldPost: true,
     todayEnergy: energy,
     includeLink: linkDecision.includeLink,
+    linkUrl: linkDecision.linkUrl,
     linkStyle: linkDecision.style,
     delaySeconds: delay,
   };

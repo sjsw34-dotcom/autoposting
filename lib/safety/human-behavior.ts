@@ -357,13 +357,13 @@ export function getPostFormat(): string {
 /**
  * 링크 포함 여부를 인간적으로 결정
  * - 연속 2번 링크 금지
- * - 전체의 15% 이하
+ * - 전체의 20% 이하
  * - 주말에는 링크 거의 안 넣음
  */
 export async function shouldIncludeLinkHuman(
   platform: Platform,
   accountId: string
-): Promise<{ includeLink: boolean; style?: string }> {
+): Promise<{ includeLink: boolean; linkUrl?: string; style?: string }> {
   if (platform === 'medium') return { includeLink: false }; // CTA는 본문에
 
   const dayOfWeek = new Date().getDay();
@@ -400,20 +400,31 @@ export async function shouldIncludeLinkHuman(
     ) sub
   `;
   const linkRatio = parseInt(recentLinks.rows[0]?.link_count || '0') / Math.max(parseInt(recentLinks.rows[0]?.total || '1'), 1);
-  if (linkRatio >= 0.15) {
+  if (linkRatio >= 0.20) {
     return { includeLink: false };
   }
 
-  // 12% 확률로 링크 포함
-  if (roll < 0.12) {
-    // 링크 스타일도 다양하게
+  // 20% 확률로 링크 포함
+  if (roll < 0.20) {
+    // 링크 URL 로테이션: 주력 amormuse.com/chat 60%, sajumuse 각 20%
+    const linkRoll = Math.random();
+    let linkUrl: string;
+    if (linkRoll < 0.60) {
+      linkUrl = 'https://www.amormuse.com/chat';
+    } else if (linkRoll < 0.80) {
+      linkUrl = 'https://www.sajumuse.com/free-reading';
+    } else {
+      linkUrl = 'https://www.sajumuse.com/love-reading';
+    }
+
     const styles = [
-      'Mention the link casually at the end, like "btw if you\'re curious: [url]"',
-      'Weave the link naturally into the content, not as a separate CTA',
+      `Mention the link casually at the end, like "btw if you're curious: ${linkUrl}"`,
+      `End with just the URL on its own line: ${linkUrl}`,
       'Add "link in bio" style reference instead of a direct URL',
     ];
     return {
       includeLink: true,
+      linkUrl,
       style: styles[Math.floor(Math.random() * styles.length)],
     };
   }

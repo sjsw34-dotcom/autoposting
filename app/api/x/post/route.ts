@@ -49,6 +49,7 @@ export async function GET(request: Request) {
       for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt++) {
         generated = await generateContent('x', contentType, {
           includeLink: humanDecision.includeLink,
+          linkUrl: humanDecision.linkUrl,
           linkStyle: humanDecision.linkStyle,
           accountId,
         });
