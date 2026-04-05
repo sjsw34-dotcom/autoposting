@@ -433,6 +433,48 @@ export async function shouldIncludeLinkHuman(
 }
 
 // ============================================================
+// 13. 이미지 포함 여부 — 모든 포스트에 이미지를 넣진 않는다
+// ============================================================
+
+/**
+ * 이미지 포함 여부를 결정
+ * - Medium은 항상 이미지 포함 (헤더 이미지가 클릭률에 큰 영향)
+ * - 기본 35%, kculture/love +15%, 직전 이미지 포스트면 15%로 감소
+ */
+export async function shouldIncludeImage(
+  platform: Platform,
+  accountId: string,
+  contentType?: string
+): Promise<boolean> {
+  // Medium은 항상 이미지
+  if (platform === 'medium') return true;
+
+  // 기본 확률 35%
+  let probability = 0.35;
+
+  // 시각적 콘텐츠 타입은 +15%
+  if (contentType === 'kculture' || contentType === 'love') {
+    probability += 0.15;
+  }
+
+  // 직전 포스트가 이미지였으면 15%로 감소 (연속 방지)
+  const lastPost = await sql`
+    SELECT has_image FROM social_posts
+    WHERE platform = ${platform}
+      AND account_id = ${accountId}
+      AND status = 'success'
+    ORDER BY posted_at DESC LIMIT 1
+  `;
+  if (lastPost.rows.length > 0 && lastPost.rows[0].has_image) {
+    probability = 0.15;
+  }
+
+  const seed = hashCode(`image-${new Date().toISOString().slice(0, 10)}-${platform}-${accountId}`);
+  const roll = Math.abs(seed % 100) / 100;
+  return roll < probability;
+}
+
+// ============================================================
 // HELPER
 // ============================================================
 

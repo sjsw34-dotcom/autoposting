@@ -54,15 +54,33 @@ function createClient(accountNumber: number = 1): TwitterApi {
 }
 
 /**
- * X에 트윗 게시
+ * X에 트윗 게시 (이미지 첨부 가능, 최대 2장)
  */
 export async function postToX(
   text: string,
-  accountNumber: number = 1
+  accountNumber: number = 1,
+  imageBuffers?: Buffer[]
 ): Promise<XPostResult> {
   try {
     const client = createClient(accountNumber);
     const rwClient = client.readWrite;
+
+    // 이미지가 있으면 미디어 업로드 후 첨부
+    if (imageBuffers && imageBuffers.length > 0) {
+      const mediaIds: string[] = [];
+      for (const buffer of imageBuffers) {
+        const mediaId = await client.v1.uploadMedia(buffer, { mimeType: 'image/png' });
+        mediaIds.push(mediaId);
+      }
+      const tweetMediaIds = mediaIds.length === 1
+        ? [mediaIds[0]] as [string]
+        : [mediaIds[0], mediaIds[1]] as [string, string];
+      const result = await rwClient.v2.tweet({
+        text,
+        media: { media_ids: tweetMediaIds },
+      });
+      return { id: result.data.id, success: true };
+    }
 
     const result = await rwClient.v2.tweet(text);
 

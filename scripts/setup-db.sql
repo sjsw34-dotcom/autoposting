@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS social_posts (
   content_hash VARCHAR(64),            -- SHA-256 (유사도 체크용)
   has_link BOOLEAN DEFAULT FALSE,
   has_image BOOLEAN DEFAULT FALSE,
+  image_url TEXT,                       -- Vercel Blob 이미지 URL(s), comma separated
   platform_post_id VARCHAR(100),       -- 플랫폼 응답 ID
   status VARCHAR(20) DEFAULT 'success',-- 'success', 'failed', 'skipped'
   error_message TEXT,

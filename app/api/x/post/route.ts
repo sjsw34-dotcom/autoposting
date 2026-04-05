@@ -6,6 +6,9 @@ import { postToX, getActiveXAccounts } from '@/lib/platforms/x-client';
 import { checkMonthlyLimit } from '@/lib/safety/rate-limiter';
 import { notifyPostSuccess, notifyPostFailure, notifyForbidden, notifyMonthlyLimitWarning } from '@/lib/notify/telegram';
 import { verifyCronSecret, getCurrentSlot, getSlotIndex } from '@/lib/utils';
+import { generatePostImages, decideImageCount } from '@/lib/image/generator';
+
+export const maxDuration = 60;
 
 const MAX_GENERATION_ATTEMPTS = 3;
 
@@ -69,13 +72,35 @@ export async function GET(request: Request) {
 
       if (!generated) continue;
 
+      // STEP 2.5: 이미지 생성 (human behavior가 결정)
+      let imageBuffers: Buffer[] | undefined;
+      let imageUrls: string[] | undefined;
+      if (humanDecision.includeImage) {
+        try {
+          const imageCount = decideImageCount();
+          const imageResult = await generatePostImages(contentType, 'x', imageCount);
+          imageUrls = imageResult.imageUrls;
+          // X는 Buffer로 업로드 필요
+          imageBuffers = await Promise.all(
+            imageUrls.map(async (url) => {
+              const res = await fetch(url);
+              return Buffer.from(await res.arrayBuffer());
+            })
+          );
+        } catch (err) {
+          console.warn(`[IMAGE] X @${accountId} image generation failed, posting text-only:`, err);
+        }
+      }
+
       // STEP 3: 포스팅
-      const result = await postToX(formattedText, account.accountNumber);
+      const result = await postToX(formattedText, account.accountNumber, imageBuffers);
 
       if (result.success) {
-        await onPostSuccess('x', accountId, formattedText, slot, contentType, generated.brand, generated.hasLink, result.id);
+        const hasImage = !!imageUrls && imageUrls.length > 0;
+        const imageUrlStr = imageUrls?.join(',');
+        await onPostSuccess('x', accountId, formattedText, slot, contentType, generated.brand, generated.hasLink, result.id, hasImage, imageUrlStr);
         await notifyPostSuccess('x', accountId, contentType);
-        results.push({ account: accountId, status: 'success', postId: result.id });
+        results.push({ account: accountId, status: 'success', postId: result.id, images: imageUrls?.length || 0 });
       } else {
         const { circuitOpened, isHttpForbidden } = await onPostFailure(
           'x', accountId, formattedText, slot, contentType, generated.brand,

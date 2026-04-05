@@ -10,6 +10,7 @@ import {
   shouldPostThisSlot,
   getHumanDelay,
   shouldIncludeLinkHuman,
+  shouldIncludeImage,
 } from './human-behavior';
 import type { Platform, ContentType, Slot, Brand } from '@/lib/db/posts';
 import { insertPost } from '@/lib/db/posts';
@@ -27,6 +28,7 @@ export interface HumanDecision {
   includeLink: boolean;
   linkUrl?: string;
   linkStyle?: string;
+  includeImage: boolean;
   delaySeconds: number;
 }
 
@@ -49,6 +51,7 @@ export async function makeHumanDecision(
       reason: skipCheck.reason,
       todayEnergy: 0,
       includeLink: false,
+      includeImage: false,
       delaySeconds: 0,
     };
   }
@@ -64,6 +67,7 @@ export async function makeHumanDecision(
       reason: `Skipping slot ${slotIndex} (today energy: ${energy})`,
       todayEnergy: energy,
       includeLink: false,
+      includeImage: false,
       delaySeconds: 0,
     };
   }
@@ -71,7 +75,10 @@ export async function makeHumanDecision(
   // 4. 링크 포함 여부 (인간적으로)
   const linkDecision = await shouldIncludeLinkHuman(platform, accountId);
 
-  // 5. 포스팅 전 딜레이 (사람은 바로 안 올림)
+  // 5. 이미지 포함 여부
+  const imageDecision = await shouldIncludeImage(platform, accountId);
+
+  // 6. 포스팅 전 딜레이 (사람은 바로 안 올림)
   const delay = getHumanDelay();
 
   return {
@@ -80,6 +87,7 @@ export async function makeHumanDecision(
     includeLink: linkDecision.includeLink,
     linkUrl: linkDecision.linkUrl,
     linkStyle: linkDecision.style,
+    includeImage: imageDecision,
     delaySeconds: delay,
   };
 }
@@ -160,7 +168,9 @@ export async function onPostSuccess(
   contentType: ContentType,
   brand: Brand,
   hasLink: boolean,
-  platformPostId?: string
+  platformPostId?: string,
+  hasImage?: boolean,
+  imageUrl?: string
 ) {
   await recordSuccess(platform, accountId);
   await recordPost(platform, accountId);
@@ -172,6 +182,8 @@ export async function onPostSuccess(
     content,
     content_hash: hashContent(content),
     has_link: hasLink,
+    has_image: hasImage,
+    image_url: imageUrl,
     brand,
     platform_post_id: platformPostId,
     status: 'success',

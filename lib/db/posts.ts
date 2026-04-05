@@ -17,6 +17,7 @@ export interface SocialPost {
   content_hash: string;
   has_link: boolean;
   has_image: boolean;
+  image_url: string | null;
   platform_post_id: string | null;
   status: PostStatus;
   error_message: string | null;
@@ -32,6 +33,8 @@ export async function insertPost(post: {
   content: string;
   content_hash: string;
   has_link: boolean;
+  has_image?: boolean;
+  image_url?: string;
   brand: Brand;
   platform_post_id?: string;
   status?: PostStatus;
@@ -40,11 +43,13 @@ export async function insertPost(post: {
   const result = await sql`
     INSERT INTO social_posts (
       platform, account_id, posted_at, slot, content_type,
-      content, content_hash, has_link, brand, platform_post_id,
+      content, content_hash, has_link, has_image, image_url, brand, platform_post_id,
       status, error_message
     ) VALUES (
       ${post.platform}, ${post.account_id}, NOW(), ${post.slot}, ${post.content_type},
-      ${post.content}, ${post.content_hash}, ${post.has_link}, ${post.brand},
+      ${post.content}, ${post.content_hash}, ${post.has_link},
+      ${post.has_image ?? false}, ${post.image_url ?? null},
+      ${post.brand},
       ${post.platform_post_id || null},
       ${post.status || 'success'}, ${post.error_message || null}
     )

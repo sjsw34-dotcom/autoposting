@@ -5,6 +5,9 @@ import { getMediumContentType, parseMediumContent } from '@/lib/content/medium-f
 import { postToMedium } from '@/lib/platforms/medium-client';
 import { notifyPostSuccess, notifyPostFailure } from '@/lib/notify/telegram';
 import { verifyCronSecret, getCurrentSlot } from '@/lib/utils';
+import { generatePostImages, decideImageCount } from '@/lib/image/generator';
+
+export const maxDuration = 60;
 
 const MAX_GENERATION_ATTEMPTS = 3;
 
@@ -54,22 +57,51 @@ export async function GET(request: Request) {
       return NextResponse.json({ status: 'error', error: 'Generation failed' }, { status: 500 });
     }
 
+    // STEP 2.5: 이미지 생성 (Medium은 항상 이미지 포함)
+    let imageUrls: string[] | undefined;
+    if (humanDecision.includeImage) {
+      try {
+        const imageCount = decideImageCount();
+        const imageResult = await generatePostImages(contentType, 'medium', imageCount);
+        imageUrls = imageResult.imageUrls;
+      } catch (err) {
+        console.warn(`[IMAGE] Medium image generation failed, posting text-only:`, err);
+      }
+    }
+
     // STEP 3: 포맷팅 + CTA 삽입
     const parsed = parseMediumContent(generated.text);
     const contentWithCTAs = insertMediumCTAs(parsed.content);
 
+    // 이미지를 마크다운에 삽입
+    let finalContent = contentWithCTAs;
+    if (imageUrls && imageUrls.length > 0) {
+      // 헤더 이미지
+      finalContent = `![](${imageUrls[0]})\n\n${finalContent}`;
+      // 2장째는 본문 중간에 삽입
+      if (imageUrls.length >= 2) {
+        const lines = finalContent.split('\n');
+        const midPoint = Math.floor(lines.length * 0.5);
+        lines.splice(midPoint, 0, `\n![](${imageUrls[1]})\n`);
+        finalContent = lines.join('\n');
+      }
+    }
+
     // STEP 4: 발행
     const result = await postToMedium({
       title: parsed.title,
-      content: contentWithCTAs,
+      content: finalContent,
       tags: parsed.tags,
       publishStatus: 'public',
     });
 
+    const hasImage = !!imageUrls && imageUrls.length > 0;
+    const imageUrlStr = imageUrls?.join(',');
+
     if (result.success) {
-      await onPostSuccess('medium', accountId, generated.text, slot, contentType, generated.brand, true, result.id);
+      await onPostSuccess('medium', accountId, generated.text, slot, contentType, generated.brand, true, result.id, hasImage, imageUrlStr);
       await notifyPostSuccess('medium', accountId, contentType);
-      return NextResponse.json({ status: 'success', postId: result.id, url: result.url });
+      return NextResponse.json({ status: 'success', postId: result.id, url: result.url, images: imageUrls?.length || 0 });
     }
 
     await onPostFailure('medium', accountId, generated.text, slot, contentType, generated.brand, result.error || 'Unknown error');
