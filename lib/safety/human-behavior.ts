@@ -83,8 +83,6 @@ export async function shouldSkipToday(
  * 기본 3회/일 대신: 1~3회를 자연스럽게 분포
  */
 export function getTodayEnergy(platform: Platform, accountId: string): number {
-  if (platform === 'medium') return 1; // Medium은 항상 1
-
   const seed = hashCode(`energy-${new Date().toISOString().slice(0, 10)}-${accountId}`);
   const roll = Math.abs(seed % 100);
 
@@ -109,8 +107,6 @@ export function shouldPostThisSlot(
   slotIndex: number, // 0=아침, 1=점심, 2=저녁
   todayEnergy: number
 ): boolean {
-  if (platform === 'medium') return true;
-
   // 에너지가 3이면 모든 슬롯, 2면 2개, 1이면 1개
   if (todayEnergy >= 3) return true;
 
@@ -181,17 +177,7 @@ export function getContentLengthMood(platform: Platform): {
     return { modifier: 'Use the full 280 characters if needed. Pack in the insight.', targetMultiplier: 1.3 };
   }
 
-  if (platform === 'threads') {
-    // Threads: 50~500자 사이에서 변동
-    if (roll < 0.25) return { modifier: 'Keep it very short, 2-3 sentences max. Quick thought.', targetMultiplier: 0.5 };
-    if (roll < 0.6) return { modifier: 'Medium length, a nice meaty paragraph.', targetMultiplier: 1.0 };
-    return { modifier: 'Go a bit longer today, tell a mini story or give a detailed explanation.', targetMultiplier: 1.5 };
-  }
-
-  // Medium: 800~2500 단어
-  if (roll < 0.3) return { modifier: 'Shorter article today, around 800-1000 words. Focused and punchy.', targetMultiplier: 0.7 };
-  if (roll < 0.7) return { modifier: 'Standard length, 1200-1500 words.', targetMultiplier: 1.0 };
-  return { modifier: 'Deep dive today, 1800-2200 words. Really explore the topic.', targetMultiplier: 1.3 };
+  return { modifier: 'Normal length.', targetMultiplier: 1.0 };
 }
 
 // ============================================================
@@ -232,11 +218,6 @@ export function getHashtagBehavior(platform: Platform): {
 } {
   const roll = Math.random();
 
-  if (platform === 'threads') {
-    // Threads: 50% 확률로 해시태그 없음, 50% 확률로 1개
-    return { includeHashtags: roll > 0.5, maxCount: 1 };
-  }
-
   if (platform === 'x') {
     // X: 30% 없음, 40% 1개, 20% 2개, 10% 0개(이모지로 대체)
     if (roll < 0.3) return { includeHashtags: false, maxCount: 0 };
@@ -244,8 +225,7 @@ export function getHashtagBehavior(platform: Platform): {
     return { includeHashtags: true, maxCount: 2 };
   }
 
-  // Medium: 태그는 별도 관리
-  return { includeHashtags: true, maxCount: 5 };
+  return { includeHashtags: true, maxCount: 3 };
 }
 
 // ============================================================
@@ -364,8 +344,6 @@ export async function shouldIncludeLinkHuman(
   platform: Platform,
   accountId: string
 ): Promise<{ includeLink: boolean; linkUrl?: string; style?: string }> {
-  if (platform === 'medium') return { includeLink: false }; // CTA는 본문에
-
   const dayOfWeek = new Date().getDay();
   const roll = Math.random();
 
@@ -438,7 +416,6 @@ export async function shouldIncludeLinkHuman(
 
 /**
  * 이미지 포함 여부를 결정
- * - Medium은 항상 이미지 포함 (헤더 이미지가 클릭률에 큰 영향)
  * - 기본 35%, kculture/love +15%, 직전 이미지 포스트면 15%로 감소
  */
 export async function shouldIncludeImage(
@@ -446,9 +423,6 @@ export async function shouldIncludeImage(
   accountId: string,
   contentType?: string
 ): Promise<boolean> {
-  // Medium은 항상 이미지
-  if (platform === 'medium') return true;
-
   // 기본 확률 35%
   let probability = 0.35;
 

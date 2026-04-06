@@ -7,9 +7,7 @@ interface ContentGuardResult {
 }
 
 const PLATFORM_LIMITS: Record<string, { minLength: number; maxLength: number; maxHashtags: number }> = {
-  threads: { minLength: 20, maxLength: 500, maxHashtags: 1 },
   x: { minLength: 10, maxLength: 280, maxHashtags: 3 },
-  medium: { minLength: 500, maxLength: 15000, maxHashtags: 5 },
 };
 
 // 스팸 금지어
@@ -110,20 +108,18 @@ export async function checkContent(
     }
   }
 
-  // AI 구조적 패턴 (짧은 포스트에서만 체크 — Medium 장문은 통과)
-  if (platform !== 'medium') {
-    for (const { pattern, name } of AI_STRUCTURAL_PATTERNS) {
-      if (pattern.test(content)) {
-        await logSafetyCheck(platform, accountId, 'similarity', 'fail', {
-          check: 'ai_structure_detected', pattern: name,
-        });
-        return { allowed: false, reason: `AI structural pattern: ${name} — must regenerate` };
-      }
+  // AI 구조적 패턴 체크
+  for (const { pattern, name } of AI_STRUCTURAL_PATTERNS) {
+    if (pattern.test(content)) {
+      await logSafetyCheck(platform, accountId, 'similarity', 'fail', {
+        check: 'ai_structure_detected', pattern: name,
+      });
+      return { allowed: false, reason: `AI structural pattern: ${name} — must regenerate` };
     }
   }
 
   // 첫 단어가 "I" 인 경우 (AI의 가장 흔한 시작)
-  if (platform !== 'medium' && /^I\s/.test(content)) {
+  if (/^I\s/.test(content)) {
     await logSafetyCheck(platform, accountId, 'similarity', 'fail', {
       check: 'starts_with_I',
     });

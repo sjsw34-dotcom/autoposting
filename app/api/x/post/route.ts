@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { makeHumanDecision, runSafetyChecks, onPostSuccess, onPostFailure } from '@/lib/safety';
 import { generateContent } from '@/lib/content/generator';
 import { getXContentType, formatXContent } from '@/lib/content/x-format';
-import { postToX, getActiveXAccounts } from '@/lib/platforms/x-client';
+import { postToX, postXThread, getActiveXAccounts } from '@/lib/platforms/x-client';
 import { checkMonthlyLimit } from '@/lib/safety/rate-limiter';
 import { notifyPostSuccess, notifyPostFailure, notifyForbidden, notifyMonthlyLimitWarning } from '@/lib/notify/telegram';
 import { verifyCronSecret, getCurrentSlot, getSlotIndex } from '@/lib/utils';
 import { generatePostImages, decideImageCount } from '@/lib/image/generator';
+import { generateZodiacFortune, formatZodiacThread } from '@/lib/content/zodiac-fortune';
 
 export const maxDuration = 60;
 
@@ -36,15 +37,39 @@ export async function GET(request: Request) {
       continue;
     }
 
-    const contentType = getXContentType(slot);
-
     try {
       const monthly = await checkMonthlyLimit('x', accountId);
       if (monthly.warning) {
         await notifyMonthlyLimitWarning('x', accountId, monthly.current, monthly.limit);
       }
 
-      // STEP 1+2: 생성 + 안전 체크 (재생성 루프)
+      // ===== 아침: 띠별 운세 스레드 =====
+      if (slot === 'morning') {
+        const fortune = generateZodiacFortune();
+        const threadTweets = formatZodiacThread(fortune);
+        const threadContent = threadTweets.join('\n---\n');
+
+        const result = await postXThread(threadTweets, account.accountNumber);
+
+        if (result.success) {
+          await onPostSuccess('x', accountId, threadContent, slot, 'fortune', 'sajumuse', false, result.id, false);
+          await notifyPostSuccess('x', accountId, 'fortune');
+          results.push({ account: accountId, status: 'success', postId: result.id, type: 'zodiac_thread', tweets: threadTweets.length });
+        } else {
+          const { circuitOpened, isHttpForbidden } = await onPostFailure(
+            'x', accountId, threadContent, slot, 'fortune', 'sajumuse',
+            result.error || 'Unknown error', result.errorCode
+          );
+          await notifyPostFailure('x', accountId, result.error || 'Unknown', circuitOpened);
+          if (isHttpForbidden) await notifyForbidden('x', accountId);
+          results.push({ account: accountId, status: 'failed', error: result.error });
+        }
+        continue;
+      }
+
+      // ===== 점심/저녁: AI 생성 콘텐츠 =====
+      const contentType = getXContentType(slot);
+
       let formattedText = '';
       let generated;
       let lastSafetyReason = '';
@@ -72,7 +97,7 @@ export async function GET(request: Request) {
 
       if (!generated) continue;
 
-      // STEP 2.5: 이미지 생성 (human behavior가 결정)
+      // 이미지 생성 (human behavior가 결정)
       let imageBuffers: Buffer[] | undefined;
       let imageUrls: string[] | undefined;
       if (humanDecision.includeImage) {
@@ -80,7 +105,6 @@ export async function GET(request: Request) {
           const imageCount = decideImageCount();
           const imageResult = await generatePostImages(contentType, 'x', imageCount);
           imageUrls = imageResult.imageUrls;
-          // X는 Buffer로 업로드 필요
           imageBuffers = await Promise.all(
             imageUrls.map(async (url) => {
               const res = await fetch(url);
@@ -92,7 +116,7 @@ export async function GET(request: Request) {
         }
       }
 
-      // STEP 3: 포스팅
+      // 포스팅
       const result = await postToX(formattedText, account.accountNumber, imageBuffers);
 
       if (result.success) {

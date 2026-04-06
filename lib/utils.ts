@@ -7,11 +7,11 @@ export function getCurrentSlot(): Slot {
   const hour = new Date().getUTCHours();
 
   // UTC 기준 Cron 시간에 매핑
-  // 23:00 UTC (08:00 KST) → morning
-  // 03:00 UTC (12:00 KST) → lunch
-  // 10:00 UTC (19:00 KST) → evening
-  if (hour >= 20 || hour < 1) return 'morning';
-  if (hour >= 1 && hour < 7) return 'lunch';
+  // 21:43 UTC (06:43 KST) → morning
+  // 04:27 UTC (13:27 KST) → lunch
+  // 11:14 UTC (20:14 KST) → evening
+  if (hour >= 19 || hour < 1) return 'morning';
+  if (hour >= 1 && hour < 8) return 'lunch';
   return 'evening';
 }
 

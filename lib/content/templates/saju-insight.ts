@@ -30,19 +30,7 @@ Your voice:
 - Sometimes you're surprised by what you find in charts
 - You DON'T sound like a textbook or Wikipedia article`;
 
-  if (platform === 'threads') {
-    return `${base}
-
-Write a Threads post (100-500 characters). Just the post text, nothing else.`;
-  }
-
-  if (platform === 'x') {
-    return `${base}
-
-Write a tweet (max 280 characters). Just the tweet text, nothing else.`;
-  }
-
   return `${base}
 
-Write a Medium article (1000-2000 words) with markdown headings. Just the article, nothing else.`;
+Write a tweet (max 280 characters). Just the tweet text, nothing else.`;
 }

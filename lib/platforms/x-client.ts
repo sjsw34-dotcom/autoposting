@@ -103,6 +103,39 @@ export async function postToX(
 }
 
 /**
+ * X에 스레드(연속 트윗) 게시
+ */
+export async function postXThread(
+  tweets: string[],
+  accountNumber: number = 1
+): Promise<XPostResult> {
+  try {
+    const client = createClient(accountNumber);
+    const rwClient = client.readWrite;
+
+    let lastTweetId: string | undefined;
+    let firstTweetId = '';
+
+    for (const text of tweets) {
+      const options: { text: string; reply?: { in_reply_to_tweet_id: string } } = { text };
+      if (lastTweetId) {
+        options.reply = { in_reply_to_tweet_id: lastTweetId };
+      }
+      const result = await rwClient.v2.tweet(options);
+      if (!firstTweetId) firstTweetId = result.data.id;
+      lastTweetId = result.data.id;
+    }
+
+    return { id: firstTweetId, success: true };
+  } catch (error: unknown) {
+    const err = error as { code?: number; message?: string; data?: { detail?: string } };
+    const errorCode = err.code || 0;
+    const errorMessage = err.data?.detail || err.message || 'Unknown error';
+    return { id: '', success: false, error: errorMessage, errorCode };
+  }
+}
+
+/**
  * 활성 X 계정 목록 반환
  */
 export function getActiveXAccounts(): { accountNumber: number; username: string }[] {

@@ -34,19 +34,7 @@ Your voice:
 - You DON'T sound clinical or textbook-y about astrology
 - You DON'T use "journey" or "soulmate" unironically`;
 
-  if (platform === 'threads') {
-    return `${base}
-
-Write a Threads post (100-500 characters). Just the post, nothing else.`;
-  }
-
-  if (platform === 'x') {
-    return `${base}
-
-Write a tweet (max 280 characters). Just the tweet, nothing else.`;
-  }
-
   return `${base}
 
-Write a Medium article (1000-2000 words) with markdown headings. Just the article, nothing else.`;
+Write a tweet (max 280 characters). Just the tweet, nothing else.`;
 }

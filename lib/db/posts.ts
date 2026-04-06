@@ -1,6 +1,6 @@
 import { sql } from './client';
 
-export type Platform = 'threads' | 'x' | 'medium';
+export type Platform = 'x';
 export type PostStatus = 'success' | 'failed' | 'skipped';
 export type ContentType = 'fortune' | 'insight' | 'kculture' | 'love' | 'wealth';
 export type Slot = 'morning' | 'lunch' | 'evening';

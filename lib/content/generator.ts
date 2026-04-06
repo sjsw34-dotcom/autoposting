@@ -144,7 +144,7 @@ ${shouldIncludeLink && options?.linkStyle ? `\nLink style: ${options.linkStyle}`
 
   const message = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: platform === 'medium' ? 4096 : 512,
+    max_tokens: 512,
     temperature,
     system: humanizedSystem,
     messages: [{ role: 'user', content: userMessage }],
@@ -168,7 +168,7 @@ ${shouldIncludeLink && options?.linkStyle ? `\nLink style: ${options.linkStyle}`
   // 링크 추가 (요청된 경우, human-behavior가 URL 결정)
   let hasLink = false;
   let linkUrl: string | undefined;
-  if (shouldIncludeLink && platform !== 'medium') {
+  if (shouldIncludeLink) {
     linkUrl = options?.linkUrl || BRAND_LINKS[brand].cta;
     text = appendLink(text, linkUrl, platform);
     hasLink = true;
@@ -183,58 +183,7 @@ function appendLink(text: string, url: string, platform: Platform): string {
     const trimmedText = text.length > maxTextLength ? text.slice(0, maxTextLength - 3) + '...' : text;
     return `${trimmedText}\n${url}`;
   }
-  if (platform === 'threads') {
-    return `${text}\n\n${url}`;
-  }
   return text;
-}
-
-export function insertMediumCTAs(
-  content: string,
-  sajumuseUrl: string = 'https://www.amormuse.com/chat',
-  amormuseUrl: string = 'https://www.amormuse.com/chat'
-): string {
-  const lines = content.split('\n');
-  const totalLines = lines.length;
-
-  // CTA 위치도 약간 랜덤하게 (30-40%, 60-70%)
-  const jitter1 = 0.30 + Math.random() * 0.10;
-  const jitter2 = 0.60 + Math.random() * 0.10;
-
-  const insertPoints = [
-    Math.floor(totalLines * jitter1),
-    Math.floor(totalLines * jitter2),
-  ];
-
-  // CTA 문구도 변동
-  const ctaVariants1 = [
-    `\n> Curious about your own chart? [Get a free reading](${sajumuseUrl})\n`,
-    `\n> Want to know your Day Master? [Try a free Saju reading](${sajumuseUrl})\n`,
-    `\n> Your birth chart holds the answers — [check yours free](${sajumuseUrl})\n`,
-  ];
-  const ctaVariants2 = [
-    `\n> Wondering about love compatibility? [See what the stars say](${amormuseUrl})\n`,
-    `\n> Curious about your relationship energy? [Explore here](${amormuseUrl})\n`,
-    `\n> Love questions? [Saju has answers](${amormuseUrl})\n`,
-  ];
-
-  const cta1 = ctaVariants1[Math.floor(Math.random() * ctaVariants1.length)];
-  const cta2 = ctaVariants2[Math.floor(Math.random() * ctaVariants2.length)];
-
-  let offset = 0;
-  lines.splice(insertPoints[0] + offset, 0, cta1);
-  offset++;
-  lines.splice(insertPoints[1] + offset, 0, cta2);
-
-  // 마지막 CTA도 변동
-  const closingCTAs = [
-    `\n---\n\nReady to decode your destiny? Start with a [free Saju reading](${sajumuseUrl}) — just your birth date and time.\n`,
-    `\n---\n\nYour Four Pillars are waiting. [Get your free reading](${sajumuseUrl}) and see what they reveal.\n`,
-    `\n---\n\n[Free Saju reading](${sajumuseUrl}) — takes 2 minutes, might change how you see everything.\n`,
-  ];
-  lines.push(closingCTAs[Math.floor(Math.random() * closingCTAs.length)]);
-
-  return lines.join('\n');
 }
 
 export function getDefaultBrand(contentType: ContentType): Brand {

@@ -51,8 +51,6 @@ const STYLE_SUFFIX = 'aesthetic photography style, soft lighting, warm tones, ci
 
 const IMAGE_SIZES: Record<Platform, string> = {
   x: 'landscape_16_9',
-  threads: 'square_hd',
-  medium: 'landscape_16_9',
 };
 
 interface FalImageResult {

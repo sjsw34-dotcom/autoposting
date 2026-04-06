@@ -3,9 +3,7 @@ import { getMonthlyCount, incrementMonthlyCount, logSafetyCheck } from '@/lib/db
 import type { Platform } from '@/lib/db/posts';
 
 const DAILY_LIMITS: Record<string, number> = {
-  threads: 3,
   x: 3,       // 계정당 3회/일
-  medium: 1,
 };
 
 const MONTHLY_WARNING_THRESHOLD = 0.8; // 80% 도달 시 경고
