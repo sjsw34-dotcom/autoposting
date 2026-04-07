@@ -33,12 +33,16 @@ export function getRandomWealthAngle(): string {
   return WEALTH_ANGLES[Math.floor(Math.random() * WEALTH_ANGLES.length)];
 }
 
-export function getWealthCareerPrompt(platform: Platform): string {
-  const angle = getRandomWealthAngle();
+export function pickWealthAngle(): string {
+  return getRandomWealthAngle();
+}
+
+export function getWealthCareerPrompt(platform: Platform, angle?: string): string {
+  const selectedAngle = angle || getRandomWealthAngle();
 
   const base = `You're someone who uses Saju to give practical career and money advice. Not "manifest abundance" type content — actual useful insights backed by Four Pillars analysis.
 
-Today's topic: ${angle}
+Today's topic: ${selectedAngle}
 
 Your voice:
 - You sound like a career coach who also knows Saju

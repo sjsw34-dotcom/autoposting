@@ -35,12 +35,16 @@ export function getRandomKCultureTopic(): string {
   return TOPICS[Math.floor(Math.random() * TOPICS.length)];
 }
 
-export function getKCultureMixPrompt(platform: Platform): string {
-  const topic = getRandomKCultureTopic();
+export function pickKCultureTopic(): string {
+  return getRandomKCultureTopic();
+}
+
+export function getKCultureMixPrompt(platform: Platform, topic?: string): string {
+  const selectedTopic = topic || getRandomKCultureTopic();
 
   const base = `You're someone who's obsessed with both Korean culture and Saju, and you love finding unexpected connections between them. You just noticed something interesting and want to share it.
 
-Today's find: ${topic}
+Today's find: ${selectedTopic}
 
 Your voice:
 - You sound genuinely excited about the connection you found

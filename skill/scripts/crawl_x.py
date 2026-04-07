@@ -43,7 +43,7 @@ def get_apify_token():
 
 def run_twitter_scraper(token: str, handle: str, max_tweets: int, min_likes: int) -> list:
     """Apify Tweet Scraper Actor 실행"""
-    actor_id = "apidojo/tweet-scraper"
+    actor_id = "apidojo~tweet-scraper"
     url = f"https://api.apify.com/v2/acts/{actor_id}/runs?token={token}"
 
     payload = json.dumps({
@@ -127,7 +127,7 @@ def run_twitter_scraper(token: str, handle: str, max_tweets: int, min_likes: int
 
 def run_keyword_search(token: str, keyword: str, max_tweets: int) -> list:
     """키워드 기반 트윗 검색"""
-    actor_id = "apidojo/tweet-scraper"
+    actor_id = "apidojo~tweet-scraper"
     url = f"https://api.apify.com/v2/acts/{actor_id}/runs?token={token}"
 
     payload = json.dumps({

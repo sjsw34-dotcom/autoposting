@@ -41,7 +41,7 @@ def get_apify_token():
 
 def run_web_crawler(token: str, base_url: str, crawl_paths: list, max_pages: int) -> list:
     """Apify Website Content Crawler 실행"""
-    actor_id = "apify/website-content-crawler"
+    actor_id = "apify~website-content-crawler"
     url = f"https://api.apify.com/v2/acts/{actor_id}/runs?token={token}"
 
     # Build start URLs from base + paths

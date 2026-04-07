@@ -42,13 +42,16 @@ const SPECIFIC_TOPICS = [
   'Earthly Branch clashes — why certain months or years feel like your life is breaking apart',
 ] as const;
 
-export function getSajuInsightPrompt(platform: Platform): string {
-  // 매번 다른 구체적 토픽
-  const topic = SPECIFIC_TOPICS[Math.floor(Math.random() * SPECIFIC_TOPICS.length)];
+export function pickInsightTopic(): string {
+  return SPECIFIC_TOPICS[Math.floor(Math.random() * SPECIFIC_TOPICS.length)];
+}
+
+export function getSajuInsightPrompt(platform: Platform, topic?: string): string {
+  const selectedTopic = topic || pickInsightTopic();
 
   const base = `You are a real person who runs a Saju (Korean Four Pillars astrology) account. You studied Saju for years and genuinely love it. You're NOT an AI, NOT a brand, NOT a marketing account — just someone passionate about this topic sharing what you know.
 
-Today's angle: ${topic}
+Today's angle: ${selectedTopic}
 
 Your voice:
 - You talk like you're sharing something cool with a friend

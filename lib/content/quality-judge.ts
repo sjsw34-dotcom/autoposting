@@ -31,29 +31,35 @@ export interface QualityScore {
 const SCORING_CRITERIA = `Score this social media post on 5 axes (1-10 each):
 
 1. HOOK_POWER: Does the first sentence stop the scroll?
-   10 = bold question/declaration that demands attention ("Scorpios don't forgive. They just stop caring.")
+   10 = bold question/declaration that demands attention ("Yang Metal people don't ghost — they execute you from their life with surgical precision.")
+   7 = strong start with specific angle
    5 = decent opening but not memorable
-   1 = generic/boring start ("Today's energy is...")
+   1 = generic/boring start ("Today's energy is..." or "Let's talk about...")
 
 2. EMOTIONAL_PULL: Does it create "this is about ME" feeling?
-   10 = hits a specific emotional nerve, feels personal ("that 3am spiral when you know they're wrong but your chart says otherwise")
+   10 = hits a specific emotional nerve, feels personal ("that moment when your Yin Fire DM partner says 'I'm fine' but their candle flame eyes say otherwise")
+   7 = relatable scenario with element/star specificity
    5 = somewhat relatable but generic
    1 = informational only, no emotional connection
 
-3. SAJU_AUTHENTICITY: Is the Korean astrology angle unique and specific?
-   10 = references Day Master, Five Elements, or Four Pillars in a way Western astrology can't ("Your Wood Day Master explains why you can't stop growing toward people who burn you")
-   5 = mentions Saju but could be any astrology
-   1 = basically Western astrology with "Saju" label
+3. SAJU_AUTHENTICITY: Does it use REAL Korean astrology mechanics correctly?
+   10 = uses correct terminology (Day Master, Ten Gods, 12 Stages, element cycles) with proper Korean terms AND shows understanding of mechanics ("Your 편재 Pyeonjae energy means money flows through your hands — you're a speculator, not a saver. That's not a flaw, that's your chart.")
+   7 = references specific Saju concepts with correct mechanics
+   5 = mentions Saju but could be any astrology; vague element references
+   3 = uses Saju terms incorrectly or superficially
+   1 = basically Western zodiac with "Saju" label; no Korean terms
 
 4. SCROLL_STOP: Is it concise and punchy?
-   10 = every word earns its place, strong ending
+   10 = every word earns its place, strong ending, lands like a punchline
+   7 = tight writing, no filler
    5 = decent but could be tighter
    1 = rambling, filler words, weak ending
 
 5. NATURAL_VOICE: Does it sound like a real person?
-   10 = has personality, opinions, slight imperfections
+   10 = has personality, opinions, slight imperfections, specific takes
+   7 = clear voice with some edge
    5 = competent but could be anyone
-   1 = clearly AI-generated, overly polished
+   1 = clearly AI-generated, uses "delve/navigate/embrace/unlock"
 
 Return ONLY a JSON object:
 {
@@ -65,7 +71,16 @@ Return ONLY a JSON object:
   "feedback": "<one sentence: what would make this post better>"
 }`;
 
-const PASS_THRESHOLD = 30; // 50점 만점 중 30점 이상 통과 (60%)
+const PASS_THRESHOLD = 33; // 50점 만점 중 33점 이상 통과 (66%)
+const SAJU_AUTH_MINIMUM = 6; // saju_authenticity 최소 6점 (핵심 차별화 축)
+
+/** 콘텐츠 타입별 가중 축 — 해당 축이 5 미만이면 불통과 */
+const CONTENT_TYPE_CRITICAL_AXIS: Partial<Record<ContentType, keyof QualityScore['axes']>> = {
+  insight: 'saju_authenticity',
+  love: 'emotional_pull',
+  wealth: 'hook_power',
+  fortune: 'saju_authenticity',
+};
 
 export async function judgeQuality(
   content: string,
@@ -107,7 +122,13 @@ export async function judgeQuality(
     };
 
     const totalScore = axes.hook_power + axes.emotional_pull + axes.saju_authenticity + axes.scroll_stop + axes.natural_voice;
-    const passed = totalScore >= PASS_THRESHOLD;
+
+    // 통과 조건: 총점 + saju_authenticity 최소 + 콘텐츠 타입별 핵심 축
+    const criticalAxis = CONTENT_TYPE_CRITICAL_AXIS[contentType];
+    const criticalAxisPassed = criticalAxis ? axes[criticalAxis] >= 5 : true;
+    const passed = totalScore >= PASS_THRESHOLD
+      && axes.saju_authenticity >= SAJU_AUTH_MINIMUM
+      && criticalAxisPassed;
 
     await logSafetyCheck(platform, accountId, 'similarity', passed ? 'pass' : 'fail', {
       check: 'quality_judge',

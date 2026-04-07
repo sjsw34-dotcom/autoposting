@@ -1,10 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { Platform, ContentType, Brand } from '@/lib/db/posts';
-import { getSajuInsightPrompt } from './templates/saju-insight';
-import { getDailyFortunePrompt } from './templates/daily-fortune';
-import { getKCultureMixPrompt } from './templates/k-culture-mix';
-import { getLoveDestinyPrompt } from './templates/love-destiny';
-import { getWealthCareerPrompt } from './templates/wealth-career';
+import { getSajuInsightPrompt, pickInsightTopic } from './templates/saju-insight';
+import { getDailyFortunePrompt, pickFortuneElement, pickFortuneAngle } from './templates/daily-fortune';
+import { getKCultureMixPrompt, pickKCultureTopic } from './templates/k-culture-mix';
+import { getLoveDestinyPrompt, pickLoveAngle } from './templates/love-destiny';
+import { getWealthCareerPrompt, pickWealthAngle } from './templates/wealth-career';
+import { getKnowledgeForTopic } from './saju-knowledge';
 import {
   getWritingMood,
   getContentLengthMood,
@@ -17,13 +18,39 @@ import {
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const PROMPT_MAP: Record<ContentType, (platform: Platform) => string> = {
-  insight: getSajuInsightPrompt,
-  fortune: getDailyFortunePrompt,
-  kculture: getKCultureMixPrompt,
-  love: getLoveDestinyPrompt,
-  wealth: getWealthCareerPrompt,
-};
+/** 토픽을 먼저 선택한 뒤 프롬프트 + 지식 매칭에 동시 사용 */
+function pickTopicAndBuildPrompt(
+  contentType: ContentType,
+  platform: Platform
+): { prompt: string; topic: string; element?: string } {
+  switch (contentType) {
+    case 'insight': {
+      const topic = pickInsightTopic();
+      return { prompt: getSajuInsightPrompt(platform, topic), topic };
+    }
+    case 'fortune': {
+      const element = pickFortuneElement();
+      const angle = pickFortuneAngle();
+      return { prompt: getDailyFortunePrompt(platform, element, angle), topic: angle, element };
+    }
+    case 'kculture': {
+      const topic = pickKCultureTopic();
+      return { prompt: getKCultureMixPrompt(platform, topic), topic };
+    }
+    case 'love': {
+      const topic = pickLoveAngle();
+      return { prompt: getLoveDestinyPrompt(platform, topic), topic };
+    }
+    case 'wealth': {
+      const topic = pickWealthAngle();
+      return { prompt: getWealthCareerPrompt(platform, topic), topic };
+    }
+    default: {
+      const topic = pickInsightTopic();
+      return { prompt: getSajuInsightPrompt(platform, topic), topic };
+    }
+  }
+}
 
 const BRAND_LINKS: Record<Brand, { main: string; cta: string }> = {
   sajumuse: {
@@ -95,14 +122,13 @@ export async function generateContent(
     accountId?: string;
   }
 ): Promise<GeneratedContent> {
-  const getPrompt = PROMPT_MAP[contentType];
-  if (!getPrompt) {
-    throw new Error(`Unknown content type: ${contentType}`);
-  }
-
   const accountId = options?.accountId || 'default';
   const brand = options?.brand || CONTENT_BRAND_MAP[contentType];
   const shouldIncludeLink = options?.includeLink ?? false;
+
+  // === 토픽 선택 + 프롬프트 생성 + 지식 매칭 ===
+  const { prompt: basePrompt, topic, element } = pickTopicAndBuildPrompt(contentType, platform);
+  const knowledge = getKnowledgeForTopic(contentType, topic, element);
 
   // === 인간 행동 변수 수집 ===
   const writingMood = getWritingMood(accountId);
@@ -114,10 +140,12 @@ export async function generateContent(
   const recentContext = await getRecentPostContext(platform, accountId);
 
   // === 시스템 프롬프트 조합 ===
-  const basePrompt = getPrompt(platform);
   const humanizedSystem = `${getAntiDetectionPrompt()}
 
 ${basePrompt}
+
+SAJU REFERENCE (use specific details, Korean terms, and real mechanics from this — don't invent generic astrology):
+${knowledge}
 
 TODAY'S WRITING STYLE:
 - Mood: ${writingMood.mood} — ${writingMood.instruction}

@@ -32,12 +32,16 @@ export function getRandomLoveAngle(): string {
   return LOVE_ANGLES[Math.floor(Math.random() * LOVE_ANGLES.length)];
 }
 
-export function getLoveDestinyPrompt(platform: Platform): string {
-  const angle = getRandomLoveAngle();
+export function pickLoveAngle(): string {
+  return getRandomLoveAngle();
+}
+
+export function getLoveDestinyPrompt(platform: Platform, angle?: string): string {
+  const selectedAngle = angle || getRandomLoveAngle();
 
   const base = `You run a love/relationship account that uses Saju (Korean astrology) to give real talk about dating and relationships. You're NOT a generic love advice account — you back everything with actual Saju element analysis.
 
-Today's topic: ${angle}
+Today's topic: ${selectedAngle}
 
 Your voice:
 - You sound like a friend who's been reading everyone's birth charts at brunch

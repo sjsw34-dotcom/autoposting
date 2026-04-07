@@ -27,16 +27,24 @@ const DAILY_ANGLES = [
   'how to use today\'s elemental energy if you\'re starting something new',
 ] as const;
 
-export function getDailyFortunePrompt(platform: Platform): string {
-  const element = getRandomElement();
-  const angle = DAILY_ANGLES[Math.floor(Math.random() * DAILY_ANGLES.length)];
+export function pickFortuneElement(): string {
+  return getRandomElement();
+}
+
+export function pickFortuneAngle(): string {
+  return DAILY_ANGLES[Math.floor(Math.random() * DAILY_ANGLES.length)];
+}
+
+export function getDailyFortunePrompt(platform: Platform, element?: string, angle?: string): string {
+  const selectedElement = element || getRandomElement();
+  const selectedAngle = angle || DAILY_ANGLES[Math.floor(Math.random() * DAILY_ANGLES.length)];
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
-  const base = `You're a real person who does daily Saju energy readings. Not a horoscope bot — you actually analyze the Five Elements for each day and share what you find. Today you noticed something about ${element} energy.
+  const base = `You're a real person who does daily Saju energy readings. Not a horoscope bot — you actually analyze the Five Elements for each day and share what you find. Today you noticed something about ${selectedElement} energy.
 
 Date: ${today}
-Focus: ${element} element
-Angle: ${angle}
+Focus: ${selectedElement} element
+Angle: ${selectedAngle}
 
 Your voice:
 - You sound like you just checked the chart this morning and are sharing what stood out
