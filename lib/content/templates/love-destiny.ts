@@ -1,6 +1,7 @@
 import type { Platform } from '@/lib/db/posts';
 
 const LOVE_ANGLES = [
+  // 기존 (12)
   'why Water and Fire people can\'t stop arguing but also can\'t leave each other',
   'the specific Day Master combo that creates instant attraction',
   'red flags you can actually spot from someone\'s birth chart',
@@ -13,6 +14,18 @@ const LOVE_ANGLES = [
   'why timing matters more than compatibility in Saju love readings',
   'the Wood-Fire dynamic that looks toxic but is actually just intense',
   'what happens when two strong Day Masters date each other',
+  // 십성/신살 기반 (5)
+  'the Peach Blossom star in your chart — are you naturally magnetic or naturally messy in love',
+  'Jeongkwan star people and why they need a partner who follows the rules',
+  'what the Wealth Star position means for who you attract romantically',
+  'the Pyeongwan energy that makes someone irresistible but emotionally unpredictable',
+  'how the Traveling Horse star in your chart affects long distance relationships',
+  // 실제 관계 시나리오 (5)
+  'why your Saju love timing cycle says you weren\'t supposed to find anyone until now',
+  'the element your partner needs from you that you\'re probably not giving',
+  'why some couples fight about money and it\'s literally written in their charts',
+  'the Earthly Branch clash that creates that "we love each other but we keep breaking up" cycle',
+  'what your birth hour says about whether you need space or closeness in relationships',
 ] as const;
 
 export function getRandomLoveAngle(): string {

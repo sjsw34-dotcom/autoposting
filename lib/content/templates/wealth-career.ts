@@ -1,6 +1,7 @@
 import type { Platform } from '@/lib/db/posts';
 
 const WEALTH_ANGLES = [
+  // 기존 (12)
   'why some Day Masters are naturally better at saving money',
   'the element type most likely to burn out in corporate jobs',
   'what your Saju says about your negotiation style at work',
@@ -13,6 +14,19 @@ const WEALTH_ANGLES = [
   'what your wealth star actually means (it\'s not what TikTok says)',
   'the Wood element approach to side hustles that actually works',
   'why Earth element people undercharge for their work',
+  // 십성 기반 재물/관성 (4)
+  'the Wealth Star (Jaeseseong) position in your chart and what it says about how money comes to you',
+  'Power Star people in management — why they\'re effective but exhausting to work for',
+  'the Food God star (Sikshin) and why creative people with it always find a way to get paid',
+  'Pyeonjae (偏財) vs Jeongjae (正財) — are you a steady earner or a big-swing gambler',
+  // 10년 대운 / 타이밍 (3)
+  'how your 10-year fortune cycle affects when to ask for a raise vs when to stay quiet',
+  'the Saju years where career changes actually stick — and the years where they backfire',
+  'why some people\'s wealth peaks at 30 and others at 50 — it\'s not random',
+  // 현대 직업/실용 (3)
+  'AI careers and Saju — which Day Masters naturally thrive in tech and which ones struggle',
+  'remote work vs office energy — what your chart says about where you do your best work',
+  'investing style by Day Master — why some of you should never touch crypto',
 ] as const;
 
 export function getRandomWealthAngle(): string {

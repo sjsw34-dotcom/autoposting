@@ -1,0 +1,126 @@
+{
+  "_description": "분석 대상 경쟁사 목록과 API 설정. 마스터가 계정을 추가/삭제할 수 있다.",
+
+  "api_config": {
+    "apify": {
+      "base_url": "https://api.apify.com/v2",
+      "token_env": "APIFY_API_TOKEN",
+      "twitter_scraper_actor": "apidojo/tweet-scraper",
+      "web_scraper_actor": "apify/website-content-crawler"
+    },
+    "claude": {
+      "model": "claude-sonnet-4-20250514",
+      "max_tokens": 4096
+    }
+  },
+
+  "_section_saju_direct": "=== 사주 직접 경쟁사 (콘텐츠 전략 + SEO 벤치마크) ===",
+
+  "websites": [
+    {
+      "url": "https://sajume.com",
+      "name": "Sajume",
+      "tier": "direct_competitor",
+      "benchmark_reason": "공격적 SEO, K-pop 트래픽 유도, $19 리포트 CTA, MZ세대 타겟, 20+개 블로그",
+      "analysis_focus": ["seo_keywords", "cta_strategy", "topic_coverage", "kpop_content_angle"],
+      "crawl_paths": ["/blog", "/"],
+      "max_pages": 30,
+      "active": true
+    },
+    {
+      "url": "https://sajugazer.com",
+      "name": "Sajugazer",
+      "tier": "direct_competitor",
+      "benchmark_reason": "교육 중심, 명리학 용어 영문화, 롱테일 SEO, 고퀄리티 가이드",
+      "analysis_focus": ["content_depth", "terminology", "seo_longtail", "educational_structure"],
+      "crawl_paths": ["/learn", "/blog", "/"],
+      "max_pages": 25,
+      "active": true
+    },
+    {
+      "url": "https://www.bestofkorea.com",
+      "name": "Best of Korea",
+      "tier": "indirect_competitor",
+      "benchmark_reason": "K-culture 맥락 사주, 학술적 신뢰도, Janet Shin 교수 콘텐츠",
+      "analysis_focus": ["cultural_positioning", "authority_building", "daily_fortune_format"],
+      "crawl_paths": ["/fortune", "/saju", "/"],
+      "max_pages": 15,
+      "active": true
+    },
+
+    {
+      "_section": "=== 서양 astrology (포맷/SEO 참고용) ===",
+      "url": "https://cafeastrology.com",
+      "name": "Cafe Astrology",
+      "tier": "format_reference",
+      "benchmark_reason": "SEO 1위, 키워드 커버리지 최고",
+      "analysis_focus": ["seo_structure", "internal_linking", "topic_breadth"],
+      "crawl_paths": ["/horoscopes/", "/articles/"],
+      "max_pages": 20,
+      "active": true
+    },
+    {
+      "url": "https://astrostyle.com",
+      "name": "AstroStyle",
+      "tier": "format_reference",
+      "benchmark_reason": "블로그 포맷 우수, CTA 전략",
+      "analysis_focus": ["blog_format", "cta_placement", "content_structure"],
+      "crawl_paths": ["/horoscopes/", "/learn-astrology/"],
+      "max_pages": 15,
+      "active": false
+    }
+  ],
+
+  "_section_x": "=== X/Twitter 계정 (포스트 톤/포맷 참고) ===",
+
+  "x_accounts": [
+    {
+      "handle": "coaboratory",
+      "name": "Co-Star Astrology",
+      "followers": "2.3M+",
+      "benchmark_reason": "위트있는 짧은 포맷, Z세대 톤, 최고 engagement",
+      "scrape_count": 50,
+      "active": true
+    },
+    {
+      "handle": "ThePatternApp",
+      "name": "The Pattern",
+      "followers": "800K+",
+      "benchmark_reason": "감성적 개인화 메시지, 앱 연동 CTA",
+      "scrape_count": 50,
+      "active": true
+    },
+    {
+      "handle": "NotAllGeminis",
+      "name": "Not All Geminis",
+      "followers": "400K+",
+      "benchmark_reason": "밈/유머 기반 astrology, 바이럴 포맷",
+      "scrape_count": 30,
+      "active": true
+    }
+  ],
+
+  "keyword_tracking": [
+    "saju reading",
+    "korean astrology",
+    "four pillars of destiny",
+    "saju chart",
+    "korean horoscope",
+    "day master astrology",
+    "five elements personality",
+    "korean birth chart",
+    "saju compatibility",
+    "korean fortune telling",
+    "bazi reading english",
+    "kpop saju",
+    "kpop birth chart"
+  ],
+
+  "scrape_settings": {
+    "x_tweets_per_account": 50,
+    "x_include_replies": false,
+    "x_min_likes": 100,
+    "web_max_pages_per_site": 30,
+    "schedule": "weekly"
+  }
+}

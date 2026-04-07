@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { makeHumanDecision, runSafetyChecks, onPostSuccess, onPostFailure } from '@/lib/safety';
 import { generateContent } from '@/lib/content/generator';
 import { getXContentType, formatXContent } from '@/lib/content/x-format';
+import { judgeQuality } from '@/lib/content/quality-judge';
 import { postToX, postXThread, getActiveXAccounts } from '@/lib/platforms/x-client';
 import { checkMonthlyLimit } from '@/lib/safety/rate-limiter';
 import { notifyPostSuccess, notifyPostFailure, notifyForbidden, notifyMonthlyLimitWarning } from '@/lib/notify/telegram';
@@ -72,7 +73,7 @@ export async function GET(request: Request) {
 
       let formattedText = '';
       let generated;
-      let lastSafetyReason = '';
+      let lastRejectReason = '';
 
       for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt++) {
         generated = await generateContent('x', contentType, {
@@ -83,16 +84,33 @@ export async function GET(request: Request) {
         });
         formattedText = formatXContent(generated.text);
 
+        // Safety check (AI detection, spam, similarity)
         const safety = await runSafetyChecks('x', accountId, formattedText);
-        if (safety.allowed) break;
-
-        lastSafetyReason = safety.reason || '';
-        console.log(`[RETRY ${attempt + 1}] X @${accountId} regenerating: ${lastSafetyReason}`);
-
-        if (attempt === MAX_GENERATION_ATTEMPTS - 1) {
-          results.push({ account: accountId, status: 'safety_blocked', reason: lastSafetyReason });
-          generated = undefined;
+        if (!safety.allowed) {
+          lastRejectReason = `safety: ${safety.reason || ''}`;
+          console.log(`[RETRY ${attempt + 1}] X @${accountId} safety fail: ${safety.reason}`);
+          if (attempt === MAX_GENERATION_ATTEMPTS - 1) {
+            results.push({ account: accountId, status: 'safety_blocked', reason: lastRejectReason });
+            generated = undefined;
+          }
+          continue;
         }
+
+        // Quality judge (engagement potential)
+        const quality = await judgeQuality(formattedText, 'x', contentType, accountId);
+        if (!quality.passed) {
+          lastRejectReason = `quality: ${quality.totalScore}/50 — ${quality.feedback}`;
+          console.log(`[RETRY ${attempt + 1}] X @${accountId} quality fail (${quality.totalScore}/50): ${quality.feedback}`);
+          if (attempt === MAX_GENERATION_ATTEMPTS - 1) {
+            // 마지막 시도도 품질 미달이면 그래도 발행 (완전 차단보다 나음)
+            console.log(`[QUALITY] X @${accountId} posting despite low score (${quality.totalScore}/50)`);
+            break;
+          }
+          continue;
+        }
+
+        console.log(`[QUALITY] X @${accountId} passed (${quality.totalScore}/50)`);
+        break;
       }
 
       if (!generated) continue;
@@ -103,7 +121,7 @@ export async function GET(request: Request) {
       if (humanDecision.includeImage) {
         try {
           const imageCount = decideImageCount();
-          const imageResult = await generatePostImages(contentType, 'x', imageCount);
+          const imageResult = await generatePostImages(contentType, 'x', imageCount, formattedText);
           imageUrls = imageResult.imageUrls;
           imageBuffers = await Promise.all(
             imageUrls.map(async (url) => {

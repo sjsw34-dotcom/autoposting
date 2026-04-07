@@ -7,6 +7,7 @@ export function getRandomElement(): string {
 }
 
 const DAILY_ANGLES = [
+  // 기존 (8)
   'how today\'s energy affects your productivity',
   'what to watch out for in conversations today',
   'the best time of day to make important decisions',
@@ -15,6 +16,15 @@ const DAILY_ANGLES = [
   'a specific action to align with today\'s energy',
   'what today\'s energy means for creative projects',
   'how to handle conflict with today\'s Five Element dynamics',
+  // 확장 (8)
+  'what today\'s energy means for financial decisions and spending',
+  'the one thing to avoid saying today based on elemental tension',
+  'why your body feels different today — the physical side of elemental shifts',
+  'how today\'s energy affects your sleep quality tonight',
+  'the best and worst meetings to have today based on element flow',
+  'why today might feel like a turning point (or a total dead end)',
+  'what today\'s branch interaction means for unexpected news or encounters',
+  'how to use today\'s elemental energy if you\'re starting something new',
 ] as const;
 
 export function getDailyFortunePrompt(platform: Platform): string {

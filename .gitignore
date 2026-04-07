@@ -8,3 +8,6 @@ next-env.d.ts
 
 .vercel
 .env*.local
+
+# Competitor analyzer raw data (large, regeneratable)
+skill/evolves/raw_data/

@@ -1,53 +1,14 @@
+import Anthropic from '@anthropic-ai/sdk';
 import { fal } from '@fal-ai/client';
 import { put } from '@vercel/blob';
 import type { Platform, ContentType } from '@/lib/db/posts';
 
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
 export interface ImageGenerationResult {
-  imageUrls: string[];   // Vercel Blob permanent URLs (1-2장)
-  prompts: string[];     // 사용된 프롬프트 (디버깅용)
+  imageUrls: string[];
+  prompts: string[];
 }
-
-// 콘텐츠 타입별 시각적 테마
-// 절대 금지: 나침반, 오행, 사주 도표, 점성술 상징, 동양 신비주의 소품
-const VISUAL_THEMES: Record<ContentType, string[]> = {
-  fortune: [
-    'dreamy sunrise sky with soft clouds and golden light',
-    'city night skyline with bokeh lights and purple gradient sky',
-    'misty mountain landscape at dawn with warm orange tones',
-    'ocean horizon at golden hour with gentle waves',
-    'starry night sky over a quiet lake with reflections',
-  ],
-  insight: [
-    'minimalist room with natural light streaming through window',
-    'cozy cafe interior with warm lighting and wood textures',
-    'soft morning light and shadows on a clean white wall',
-    'rain on a window with blurred city lights behind',
-    'sunlight filtering through tree leaves creating shadow patterns',
-  ],
-  kculture: [
-    'aesthetic Korean street at night with neon signs and warm tones',
-    'traditional hanok cafe with modern styling and soft lighting',
-    'cherry blossom lined street in Seoul with pastel colors',
-    'colorful Korean market alley with string lights',
-    'rooftop view of Seoul cityscape at sunset',
-  ],
-  love: [
-    'warm candlelight with soft bokeh and flower petals',
-    'couple silhouette against a sunset sky',
-    'pink and peach colored flowers with soft focus',
-    'cozy warm-toned room with fairy lights',
-    'two coffee cups on a table with morning light',
-  ],
-  wealth: [
-    'modern city skyline at golden hour with glass buildings',
-    'elegant desk setup with warm ambient lighting',
-    'aerial view of a vibrant city at dusk',
-    'luxury minimal interior with natural light',
-    'morning coffee with a city view through large windows',
-  ],
-};
-
-const STYLE_SUFFIX = 'aesthetic photography style, soft lighting, warm tones, cinematic mood, no text, no watermark, no symbols, no icons';
 
 const IMAGE_SIZES: Record<Platform, string> = {
   x: 'landscape_16_9',
@@ -58,23 +19,139 @@ interface FalImageResult {
 }
 
 /**
- * 포스트용 이미지 생성 (1~2장)
+ * 포스트 내용 기반 이미지 프롬프트 생성
+ * Claude Haiku가 포스트 텍스트를 분석하여 FLUX Pro에 최적화된 프롬프트를 만든다.
+ */
+async function generateImagePrompt(postText: string, contentType: ContentType): Promise<string> {
+  const message = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 250,
+    temperature: 0.7,
+    system: `You are an expert image prompt engineer for FLUX Pro (text-to-image AI).
+Your job: read a social media post and craft ONE perfect image prompt that elevates the post when seen together on a feed.
+
+=== IMAGE QUALITY PRINCIPLES ===
+
+COMPOSITION:
+- Always specify a clear subject and background relationship
+- Use rule-of-thirds or centered composition — state which
+- Specify depth of field: "shallow DoF with bokeh background" or "deep focus landscape"
+- Include camera angle: "eye-level", "slightly above", "low angle looking up"
+- For 16:9 format: leave breathing room, don't overcrowd the frame
+
+LIGHTING (most important for mood):
+- Golden hour: warm, directional, long shadows — for hope, warmth, new beginnings
+- Blue hour: cool, contemplative, soft — for introspection, mystery
+- Overcast diffused: even, soft, no harsh shadows — for calm, neutral
+- Side lighting: dramatic, depth-revealing — for tension, duality
+- Backlit/rim light: silhouette, ethereal — for transformation, spiritual
+- Practical lighting (lamps, candles, neon): intimate, grounded — for personal moments
+- Always specify light direction and quality (soft/hard/diffused)
+
+COLOR PALETTE:
+- Specify 2-3 dominant colors that match the emotional tone
+- Warm amber + deep navy = contemplation with warmth
+- Sage green + cream = growth, calm
+- Deep burgundy + gold = passion, intensity
+- Cool blue + silver = clarity, detachment
+- Muted earth tones = grounded, practical
+- Avoid oversaturated neon or garish combinations
+
+STYLE DIRECTION:
+- "Editorial photography" = polished, magazine-worthy
+- "Documentary photography" = raw, authentic
+- "Fine art photography" = artistic, intentional
+- "Lifestyle photography" = natural, relatable
+- Specify film stock feel if appropriate: "Kodak Portra 400 warmth", "Fuji Pro 400H greens"
+
+=== ABSOLUTE RULES ===
+
+NEVER include in prompts:
+- Human faces or recognizable people (AI faces look uncanny and ruin posts)
+- Hands or fingers (AI consistently fails at these)
+- Text, letters, numbers, writing of any kind
+- Logos, watermarks, brand marks
+- Phone screens, laptop screens, any screen with content
+- Mystical clichés: crystal balls, tarot cards, zodiac wheels, horoscope symbols
+- Saju/Eastern: compass (나침반), bagua mirrors, yin-yang symbols, five element diagrams
+  (Exception: ONLY if the post literally explains that specific concept, and even then, show it as a real physical object in a natural setting, not as a graphic)
+- Multiple small objects scattered around (looks like stock photo)
+- Clip art style, illustration style, cartoon style
+- Split compositions or collages
+
+ALWAYS include in prompts:
+- One clear visual metaphor that connects to the post's core message
+- Specific material textures (weathered wood, smooth stone, flowing silk, cracked earth)
+- Environmental context (where is this scene?)
+- Time of day and its light quality
+- Atmospheric elements if relevant (mist, rain, dust particles in light, steam)
+
+=== AUDIENCE ===
+- 20s to 50s adults, international English speakers
+- Sophisticated but not pretentious, warm but not cheesy
+- Think: the kind of image a thoughtful person would pause on while scrolling
+- NOT: overly young/trendy, NOT: stock-photo corporate, NOT: Instagram-filter-heavy
+
+=== CONTENT TYPE MOODS ===
+- fortune: expansive, atmospheric, nature or sky, sense of possibility
+- insight: intimate, contemplative, personal spaces, interesting light
+- kculture: authentic Korean aesthetics — hanok architecture, Korean ceramics, tea ceremony, seasonal Korean landscapes, traditional fabric textures. NOT: tourist shots, NOT: K-pop neon
+- love: warmth, proximity, tenderness — through objects and spaces, NOT through people
+- wealth: grounded ambition, craftsmanship, quality materials, urban architecture
+
+=== OUTPUT FORMAT ===
+Write exactly ONE prompt, 40-70 words. Be extremely specific. Every word should add visual information.
+No preamble, no explanation, just the prompt.`,
+    messages: [{
+      role: 'user',
+      content: `Post text: "${postText}"\nContent type: ${contentType}`,
+    }],
+  });
+
+  let prompt = '';
+  for (const block of message.content) {
+    if (block.type === 'text') prompt = block.text.trim();
+  }
+
+  // 따옴표 래핑 제거
+  if ((prompt.startsWith('"') && prompt.endsWith('"')) || (prompt.startsWith("'") && prompt.endsWith("'"))) {
+    prompt = prompt.slice(1, -1).trim();
+  }
+
+  // "Here's" 등 메타 텍스트 제거
+  prompt = prompt.replace(/^(here'?s?\s*(the|a|my|your)?\s*prompt[:\s]*)/i, '').trim();
+
+  // 안전장치: 사람 얼굴/손 관련 단어가 포함되면 제거
+  const faceHandPatterns = /\b(face|portrait|person|people|man|woman|girl|boy|child|hand|finger|selfie|headshot)\b/gi;
+  prompt = prompt.replace(faceHandPatterns, '').replace(/\s{2,}/g, ' ').trim();
+
+  return prompt;
+}
+
+/**
+ * 포스트 내용 기반 이미지 생성
  */
 export async function generatePostImages(
   contentType: ContentType,
   platform: Platform,
-  imageCount: number = 1
+  imageCount: number = 1,
+  postText?: string
 ): Promise<ImageGenerationResult> {
   fal.config({ credentials: process.env.FAL_KEY });
 
-  const themes = VISUAL_THEMES[contentType];
   const imageUrls: string[] = [];
   const prompts: string[] = [];
 
   for (let i = 0; i < imageCount; i++) {
-    // 매번 다른 테마 선택
-    const theme = themes[Math.floor(Math.random() * themes.length)];
-    const prompt = `${theme}. ${STYLE_SUFFIX}`;
+    let prompt: string;
+
+    if (postText) {
+      // 포스트 내용 기반 프롬프트 생성
+      prompt = await generateImagePrompt(postText, contentType);
+    } else {
+      // fallback: 기본 테마
+      prompt = `Atmospheric ${contentType} themed photography, natural lighting, warm tones, cinematic mood. No text, no watermark, no symbols`;
+    }
     prompts.push(prompt);
 
     const result = await fal.subscribe('fal-ai/flux-pro/v1.1', {
@@ -101,9 +178,8 @@ export async function generatePostImages(
     });
 
     imageUrls.push(blob.url);
-    console.log(`[IMAGE] Generated ${i + 1}/${imageCount} for ${platform}/${contentType} — ~$0.02`);
+    console.log(`[IMAGE] Generated ${i + 1}/${imageCount} for ${platform}/${contentType}`);
 
-    // 2장 생성 시 500ms 간격
     if (i < imageCount - 1) {
       await new Promise(resolve => setTimeout(resolve, 500));
     }
@@ -113,8 +189,8 @@ export async function generatePostImages(
 }
 
 /**
- * 이미지 개수 결정: 60% → 1장, 40% → 2장
+ * 이미지 개수 결정: 70% → 1장, 30% → 2장
  */
 export function decideImageCount(): number {
-  return Math.random() < 0.6 ? 1 : 2;
+  return Math.random() < 0.7 ? 1 : 2;
 }
