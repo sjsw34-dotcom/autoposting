@@ -216,7 +216,7 @@ export function formatZodiacThread(fortune: ZodiacFortune): string[] {
 
   // 마지막 트윗: 클로저 + CTA
   tweets.push(
-    `${fortune.closer}\n\n💬 ${fortune.cta}\n\n🔗 amormuse.com/chat`
+    `${fortune.closer}\n\n💬 ${fortune.cta}\n\n🔗 sajumuse.com/free-reading`
   );
 
   return tweets;

@@ -103,6 +103,20 @@ export async function notifyMonthlyLimitWarning(
 }
 
 /**
+ * 인간 행동 스킵 알림 (연속 스킵 감시용)
+ */
+export async function notifyHumanSkip(
+  platform: string,
+  accountId: string,
+  reason: string
+) {
+  await sendTelegram({
+    text: `<b>${platform.toUpperCase()}</b> @${accountId}\nSkipped: ${reason} 💤`,
+    level: 'warn',
+  });
+}
+
+/**
  * 일일 리포트 생성 및 전송
  */
 export async function sendDailyReport(

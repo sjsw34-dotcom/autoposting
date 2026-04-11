@@ -54,12 +54,12 @@ function pickTopicAndBuildPrompt(
 
 const BRAND_LINKS: Record<Brand, { main: string; cta: string }> = {
   sajumuse: {
-    main: 'https://www.amormuse.com',
-    cta: 'https://www.amormuse.com/chat',
+    main: 'https://www.sajumuse.com',
+    cta: 'https://www.sajumuse.com/free-reading',
   },
   amormuse: {
-    main: 'https://www.amormuse.com',
-    cta: 'https://www.amormuse.com/chat',
+    main: 'https://www.sajumuse.com',
+    cta: 'https://www.sajumuse.com/free-reading',
   },
 };
 

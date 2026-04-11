@@ -5,7 +5,7 @@ import { getXContentType, formatXContent } from '@/lib/content/x-format';
 import { judgeQuality } from '@/lib/content/quality-judge';
 import { postToX, postXThread, getActiveXAccounts } from '@/lib/platforms/x-client';
 import { checkMonthlyLimit } from '@/lib/safety/rate-limiter';
-import { notifyPostSuccess, notifyPostFailure, notifyForbidden, notifyMonthlyLimitWarning } from '@/lib/notify/telegram';
+import { notifyPostSuccess, notifyPostFailure, notifyForbidden, notifyMonthlyLimitWarning, notifyHumanSkip } from '@/lib/notify/telegram';
 import { verifyCronSecret, getCurrentSlot, getSlotIndex } from '@/lib/utils';
 import { generatePostImages, decideImageCount } from '@/lib/image/generator';
 import { generateZodiacFortune, formatZodiacThread } from '@/lib/content/zodiac-fortune';
@@ -34,6 +34,7 @@ export async function GET(request: Request) {
     // STEP 0: 인간 행동 결정
     const humanDecision = await makeHumanDecision('x', accountId, slotIndex);
     if (!humanDecision.shouldPost) {
+      await notifyHumanSkip('x', accountId, humanDecision.reason || 'unknown');
       results.push({ account: accountId, status: 'human_skip', reason: humanDecision.reason });
       continue;
     }

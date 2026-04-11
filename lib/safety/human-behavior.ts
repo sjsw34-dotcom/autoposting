@@ -32,6 +32,15 @@ export async function shouldSkipToday(
   const dayOfWeek = new Date().getDay(); // 0=일, 6=토
   const dayOfMonth = new Date().getDate();
 
+  // === 연속 스킵 제한: 2일 연속 스킵했으면 오늘은 무조건 포스팅 ===
+  const consecutiveSkipDays = await getConsecutiveSkipDays(platform, accountId);
+  if (consecutiveSkipDays >= 2) {
+    await logSafetyCheck(platform, accountId, 'warmup', 'pass', {
+      action: 'force_post_after_consecutive_skips', consecutiveSkipDays,
+    });
+    return { skip: false };
+  }
+
   // 시드: 날짜 + 계정명으로 결정적 랜덤 (같은 날 같은 결과)
   const seed = hashCode(`${new Date().toISOString().slice(0, 10)}-${platform}-${accountId}`);
   const roll = Math.abs(seed % 100);
@@ -70,6 +79,42 @@ export async function shouldSkipToday(
   }
 
   return { skip: false };
+}
+
+/**
+ * 최근 연속 스킵 일수 계산
+ * social_posts에 성공 기록이 없는 날을 역순으로 세어서 반환
+ */
+async function getConsecutiveSkipDays(
+  platform: Platform,
+  accountId: string
+): Promise<number> {
+  try {
+    const result = await sql`
+      SELECT DISTINCT DATE(posted_at) as post_date
+      FROM social_posts
+      WHERE platform = ${platform}
+        AND account_id = ${accountId}
+        AND status = 'success'
+      ORDER BY post_date DESC
+      LIMIT 1
+    `;
+
+    if (result.rows.length === 0) return 0;
+
+    const lastPostDate = new Date(result.rows[0].post_date as string);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    lastPostDate.setHours(0, 0, 0, 0);
+
+    const diffMs = today.getTime() - lastPostDate.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    // 오늘 아직 안 올렸으면 오늘은 세지 않음 (어제까지만 카운트)
+    return Math.max(0, diffDays - 1);
+  } catch {
+    return 0; // DB 에러 시 스킵 방지 (포스팅 허용)
+  }
 }
 
 // ============================================================
@@ -384,11 +429,11 @@ export async function shouldIncludeLinkHuman(
 
   // 20% 확률로 링크 포함
   if (roll < 0.20) {
-    // 링크 URL 로테이션: 주력 amormuse.com/chat 60%, sajumuse 각 20%
+    // 링크 URL 로테이션: sajumuse.com/free-reading 60%, 나머지 각 20%
     const linkRoll = Math.random();
     let linkUrl: string;
     if (linkRoll < 0.60) {
-      linkUrl = 'https://www.amormuse.com/chat';
+      linkUrl = 'https://www.sajumuse.com/free-reading';
     } else if (linkRoll < 0.80) {
       linkUrl = 'https://www.sajumuse.com/free-reading';
     } else {
