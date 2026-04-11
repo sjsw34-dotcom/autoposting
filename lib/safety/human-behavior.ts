@@ -91,27 +91,25 @@ async function getConsecutiveSkipDays(
 ): Promise<number> {
   try {
     const result = await sql`
-      SELECT DISTINCT DATE(posted_at) as post_date
+      SELECT posted_at
       FROM social_posts
       WHERE platform = ${platform}
         AND account_id = ${accountId}
         AND status = 'success'
-      ORDER BY post_date DESC
+      ORDER BY posted_at DESC
       LIMIT 1
     `;
 
     if (result.rows.length === 0) return 0;
 
-    const lastPostDate = new Date(result.rows[0].post_date as string);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    lastPostDate.setHours(0, 0, 0, 0);
+    const lastPostAt = new Date(result.rows[0].posted_at as string);
+    const now = new Date();
+    const diffMs = now.getTime() - lastPostAt.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
 
-    const diffMs = today.getTime() - lastPostDate.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    // 오늘 아직 안 올렸으면 오늘은 세지 않음 (어제까지만 카운트)
-    return Math.max(0, diffDays - 1);
+    // 48시간 이상 포스팅 없으면 강제 복귀 (시간대 문제 회피)
+    if (diffHours >= 48) return 2;
+    return 0;
   } catch {
     return 0; // DB 에러 시 스킵 방지 (포스팅 허용)
   }
