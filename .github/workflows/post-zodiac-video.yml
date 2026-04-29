@@ -1,0 +1,75 @@
+name: Post daily zodiac video to X
+
+# Vercel cron handles text/image posts; this workflow handles video.
+# GitHub Actions runners come with FFmpeg + Node 22, which Vercel
+# Serverless can't provide.
+
+on:
+  schedule:
+    # 06:30 KST = 21:30 UTC (sits 13 minutes before the existing morning
+    # text cron at 21:43 UTC, so the video lands first and the text thread
+    # follows as a same-morning support beat)
+    - cron: '30 21 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Render only, skip X upload'
+        type: boolean
+        default: false
+      account:
+        description: 'X account number (1-5)'
+        type: string
+        default: '1'
+
+jobs:
+  render-and-post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # ffmpeg-static ships a binary, but the engine also probes ffprobe.
+      # apt provides both reliably on ubuntu-latest.
+      - name: Ensure ffmpeg + ffprobe available
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          ffmpeg -version | head -1
+          ffprobe -version | head -1
+
+      - name: Render and post zodiac video
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCOUNT_1_TOKEN: ${{ secrets.X_ACCOUNT_1_TOKEN }}
+          X_ACCOUNT_1_SECRET: ${{ secrets.X_ACCOUNT_1_SECRET }}
+          X_ACCOUNT_1_USERNAME: ${{ secrets.X_ACCOUNT_1_USERNAME }}
+          X_ACCOUNT_2_TOKEN: ${{ secrets.X_ACCOUNT_2_TOKEN }}
+          X_ACCOUNT_2_SECRET: ${{ secrets.X_ACCOUNT_2_SECRET }}
+          X_ACCOUNT_2_USERNAME: ${{ secrets.X_ACCOUNT_2_USERNAME }}
+          X_ACCOUNT_3_TOKEN: ${{ secrets.X_ACCOUNT_3_TOKEN }}
+          X_ACCOUNT_3_SECRET: ${{ secrets.X_ACCOUNT_3_SECRET }}
+          X_ACCOUNT_3_USERNAME: ${{ secrets.X_ACCOUNT_3_USERNAME }}
+          DEBUG_VIDEO: '1'
+        run: |
+          ARGS=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          if [ -n "${{ inputs.account }}" ]; then ARGS="$ARGS --account=${{ inputs.account }}"; fi
+          npx tsx scripts/video/post-zodiac-video.ts $ARGS
+
+      - name: Upload rendered video as artifact (debug)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zodiac-video-${{ github.run_id }}
+          path: video/output/*.mp4
+          retention-days: 7
+          if-no-files-found: ignore

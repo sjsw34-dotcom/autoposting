@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test-post": "npx tsx scripts/test-post.ts"
+    "test-post": "npx tsx scripts/test-post.ts",
+    "video:zodiac": "npx tsx scripts/video/post-zodiac-video.ts",
+    "video:zodiac:dry": "npx tsx scripts/video/post-zodiac-video.ts --dry-run",
+    "video:preview": "npx tsx scripts/video/preview-variations.ts",
+    "video:test-variations": "npx tsx scripts/video/test-variations.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
@@ -20,9 +24,16 @@
     "twitter-api-v2": "^1.17.0"
   },
   "devDependencies": {
+    "@hyperframes/core": "^0.4.34",
+    "@hyperframes/engine": "^0.4.34",
+    "@hyperframes/producer": "^0.4.34",
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.0",
+    "@webgpu/types": "^0.1.69",
     "dotenv": "^17.4.1",
+    "ffmpeg-static": "^5.3.0",
+    "ffprobe-static": "^3.1.0",
+    "hyperframes": "^0.4.34",
     "tsx": "^4.21.0",
     "typescript": "^5.5.0"
   }

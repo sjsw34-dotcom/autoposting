@@ -11,3 +11,8 @@ next-env.d.ts
 
 # Competitor analyzer raw data (large, regeneratable)
 skill/evolves/raw_data/
+
+# Video pipeline (rendered MP4s + per-render work dirs are regeneratable)
+video/output/
+video/.work/
+

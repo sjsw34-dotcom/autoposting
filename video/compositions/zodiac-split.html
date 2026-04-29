@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>__THEME_ROOT__</style>
+    <style>__AMBIENT_CSS__</style>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--canvas);
+        font-family: "EB Garamond", serif;
+        color: var(--ink);
+      }
+      .canvas { position: relative; width: 100%; height: 100%; overflow: hidden; }
+      .ambient { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        z-index: 2;
+      }
+      .scene .top, .scene .bottom {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 120px 80px;
+        gap: 24px;
+      }
+      .scene .top {
+        align-items: flex-start;
+        border-bottom: 1px solid var(--border);
+      }
+      .scene .bottom {
+        align-items: flex-start;
+        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.18) 100%);
+      }
+      .label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 28px;
+        letter-spacing: 0.20em;
+        color: var(--accent);
+        text-transform: uppercase;
+      }
+      .energy-chip {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 22px;
+        letter-spacing: 0.22em;
+        color: var(--chip);
+        text-transform: uppercase;
+      }
+      .headline-xl {
+        font-family: "Archivo Black", sans-serif;
+        font-size: 220px;
+        line-height: 0.86;
+        color: var(--ink);
+        letter-spacing: -0.04em;
+        text-transform: uppercase;
+      }
+      .quote {
+        font-family: "EB Garamond", serif;
+        font-style: italic;
+        font-size: 50px;
+        line-height: 1.32;
+        max-width: 920px;
+        color: var(--ink);
+      }
+      .quote.large { font-size: 60px; line-height: 1.25; }
+      .accent-strip {
+        width: 100%;
+        height: 6px;
+        background: var(--accent);
+        transform-origin: left center;
+      }
+      .footer-tag {
+        position: absolute;
+        bottom: 60px;
+        left: 80px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 22px;
+        letter-spacing: 0.22em;
+        color: var(--border);
+        text-transform: uppercase;
+        z-index: 3;
+      }
+      .caption-track {
+        position: absolute;
+        left: 80px;
+        right: 80px;
+        bottom: 160px;
+        z-index: 4;
+        min-height: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+      }
+      .caption {
+        position: absolute;
+        left: 0; right: 0;
+        text-align: center;
+        font-family: "Archivo Black", sans-serif;
+        font-size: 56px;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+        text-shadow: 0 4px 24px rgba(0,0,0,0.7), 0 0 40px rgba(0,0,0,0.5);
+        padding: 0 40px;
+      }
+      .scene { opacity: 1; }
+      .s2, .s3 { opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="__TOTAL_DURATION__"
+      data-width="1080"
+      data-height="1920"
+    >
+      __AUDIO_HTML__
+      <div class="canvas">
+        <div class="ambient" id="ambient">__AMBIENT_HTML__</div>
+
+        <div class="scene s1" id="scene1">
+          <div class="top">
+            <div class="energy-chip" id="s1-energy">__ENERGY_LABEL__</div>
+            <div class="label" id="s1-label">__DATE_LABEL__</div>
+            <div class="headline-xl" id="s1-headline">__SIGN_HEADLINE__</div>
+          </div>
+          <div class="bottom">
+            <div class="accent-strip" id="s1-strip" style="width:160px;"></div>
+            <div class="quote" id="s1-sub">__SIGN_SUBLINE__</div>
+          </div>
+        </div>
+
+        <div class="scene s2" id="scene2">
+          <div class="top">
+            <div class="label" id="s2-label">TODAY'S READING</div>
+            <div class="accent-strip" id="s2-strip" style="width:200px;"></div>
+            <div class="quote large" id="s2-quote" style="max-width:940px;">__FORTUNE_TEXT__</div>
+          </div>
+          <div class="bottom">
+            <div class="energy-chip" id="s2-energy">__ENERGY_LABEL__</div>
+          </div>
+        </div>
+
+        <div class="scene s3" id="scene3">
+          <div class="top">
+            <div class="label" id="s3-label">SAJU · KOREAN ASTROLOGY</div>
+            <div class="headline-xl" id="s3-cta" style="font-size:140px;">__CTA_LINE__</div>
+          </div>
+          <div class="bottom">
+            <div class="quote" id="s3-url" style="font-style:normal;font-family:'JetBrains Mono',monospace;font-size:42px;letter-spacing:0.10em;">sajumuse.com</div>
+          </div>
+        </div>
+
+        <div class="caption-track" id="caption-track">__CAPTIONS_HTML__</div>
+
+        <div class="footer-tag">SAJUMUSE · DAILY</div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const HEAD_EASE = "__HEAD_EASE__";
+      const BODY_EASE = "__BODY_EASE__";
+
+      __CAPTIONS_GSAP__
+
+      // Scene 1 — split top/bottom with staggered slide-ins from opposite sides
+      tl.from("#s1-energy",   { x: -40, opacity: 0, duration: 0.5, ease: BODY_EASE }, 0.15);
+      tl.from("#s1-label",    { x: -40, opacity: 0, duration: 0.5, ease: BODY_EASE }, 0.3);
+      tl.from("#s1-headline", { x: -120, opacity: 0, duration: 0.95, ease: HEAD_EASE }, 0.5);
+      tl.from("#s1-strip",    { scaleX: 0, opacity: 0, duration: 0.55, ease: "expo.out" }, 1.0);
+      tl.from("#s1-sub",      { x: 60, opacity: 0, duration: 0.7, ease: BODY_EASE }, 1.15);
+
+      tl.to("#scene1", { opacity: 0, duration: 0.6, ease: "power2.inOut" }, 8.0);
+      tl.set("#scene2", { opacity: 1 }, 8.0);
+
+      tl.from("#s2-label",  { x: -40, opacity: 0, duration: 0.5, ease: BODY_EASE }, 8.4);
+      tl.from("#s2-strip",  { scaleX: 0, opacity: 0, duration: 0.6, ease: "expo.out" }, 8.65);
+      tl.from("#s2-quote",  { y: 60, opacity: 0, duration: 0.95, ease: HEAD_EASE }, 8.8);
+      tl.from("#s2-energy", { x: -40, opacity: 0, duration: 0.5, ease: BODY_EASE }, 9.4);
+
+      tl.to("#scene2", { opacity: 0, duration: 0.6, ease: "power2.inOut" }, 17.0);
+      tl.set("#scene3", { opacity: 1 }, 17.0);
+
+      tl.from("#s3-label", { x: -40, opacity: 0, duration: 0.5, ease: BODY_EASE }, 17.4);
+      tl.from("#s3-cta",   { y: 80, opacity: 0, duration: 0.85, ease: HEAD_EASE }, 17.65);
+      tl.from("#s3-url",   { x: -40, opacity: 0, duration: 0.6, ease: BODY_EASE }, 18.3);
+
+      tl.to("#scene3", { opacity: 0, duration: 0.7, ease: "power2.inOut" }, 24.2);
+
+      const cycle = 8;
+      const repeats = Math.ceil(25 / cycle) - 1;
+      tl.to("#ambient", {
+        opacity: 0.55,
+        duration: cycle / 2,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: repeats * 2 + 1,
+      }, 0);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

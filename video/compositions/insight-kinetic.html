@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>__THEME_ROOT__</style>
+    <style>__AMBIENT_CSS__</style>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--canvas);
+        font-family: "EB Garamond", serif;
+        color: var(--ink);
+      }
+      .canvas { position: relative; width: 100%; height: 100%; overflow: hidden; }
+      .ambient { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 180px 80px;
+        gap: 32px;
+        z-index: 2;
+      }
+      .label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 28px;
+        letter-spacing: 0.22em;
+        color: var(--accent);
+        text-transform: uppercase;
+      }
+      .energy-chip {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 22px;
+        letter-spacing: 0.22em;
+        color: var(--chip);
+        text-transform: uppercase;
+      }
+      .hook-stack {
+        display: flex;
+        flex-direction: column;
+        line-height: 0.92;
+      }
+      .hook-line {
+        font-family: "Archivo Black", sans-serif;
+        font-size: 140px;
+        letter-spacing: -0.03em;
+        color: var(--ink);
+        text-transform: uppercase;
+        overflow: hidden;
+      }
+      .hook-line.outline {
+        color: transparent;
+        -webkit-text-stroke: 3px var(--accent);
+      }
+      .body {
+        font-family: "EB Garamond", serif;
+        font-style: italic;
+        font-size: 56px;
+        line-height: 1.3;
+        max-width: 920px;
+        color: var(--ink);
+      }
+      .accent-mark {
+        width: 28px; height: 28px;
+        background: var(--accent);
+        border-radius: 50%;
+      }
+      .footer-tag {
+        position: absolute;
+        bottom: 60px;
+        left: 80px;
+        right: 80px;
+        display: flex;
+        justify-content: space-between;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 22px;
+        letter-spacing: 0.22em;
+        color: var(--border);
+        text-transform: uppercase;
+        z-index: 3;
+      }
+      .caption-track {
+        position: absolute;
+        left: 80px;
+        right: 80px;
+        bottom: 160px;
+        z-index: 4;
+        min-height: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+      }
+      .caption {
+        position: absolute;
+        left: 0; right: 0;
+        text-align: center;
+        font-family: "Archivo Black", sans-serif;
+        font-size: 54px;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+        text-shadow: 0 4px 24px rgba(0,0,0,0.7), 0 0 40px rgba(0,0,0,0.5);
+        padding: 0 40px;
+      }
+      .scene { opacity: 1; }
+      .s2, .s3 { opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="__TOTAL_DURATION__"
+      data-width="1080"
+      data-height="1920"
+    >
+      __AUDIO_HTML__
+      <div class="canvas">
+        <div class="ambient" id="ambient">__AMBIENT_HTML__</div>
+
+        <div class="scene s1" id="scene1">
+          <div class="energy-chip" id="s1-energy">__ENERGY_LABEL__</div>
+          <div class="label" id="s1-label">__CATEGORY_LABEL__</div>
+          <div class="hook-stack">
+            <div class="hook-line outline" id="s1-line1">SAJU</div>
+            <div class="hook-line" id="s1-line2">__HOOK_LINE__</div>
+          </div>
+        </div>
+
+        <div class="scene s2" id="scene2">
+          <div class="accent-mark" id="s2-mark"></div>
+          <div class="label" id="s2-label">INSIGHT</div>
+          <div class="body" id="s2-body">__BODY_TEXT__</div>
+        </div>
+
+        <div class="scene s3" id="scene3">
+          <div class="energy-chip" id="s3-energy">__ENERGY_LABEL__</div>
+          <div class="hook-line" id="s3-cta" style="font-size:120px;">__CTA_LINE__</div>
+          <div class="body" id="s3-url" style="font-style:normal;font-family:'JetBrains Mono',monospace;font-size:36px;letter-spacing:0.10em;">sajumuse.com</div>
+        </div>
+
+        <div class="caption-track" id="caption-track">__CAPTIONS_HTML__</div>
+
+        <div class="footer-tag">
+          <span>SAJUMUSE</span>
+          <span>· INSIGHT ·</span>
+          <span>KR</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const HEAD_EASE = "__HEAD_EASE__";
+      const BODY_EASE = "__BODY_EASE__";
+
+      __CAPTIONS_GSAP__
+
+      tl.from("#s1-energy", { y: 20, opacity: 0, duration: 0.45, ease: BODY_EASE }, 0.1);
+      tl.from("#s1-label",  { x: -30, opacity: 0, duration: 0.45, ease: BODY_EASE }, 0.3);
+      tl.from("#s1-line1",  { yPercent: 100, opacity: 0, duration: 0.6, ease: "power4.out" }, 0.5);
+      tl.from("#s1-line2",  { yPercent: 100, opacity: 0, duration: 0.7, ease: HEAD_EASE }, 0.7);
+
+      tl.to("#scene1", { opacity: 0, duration: 0.6, ease: "power2.inOut" }, 6.0);
+      tl.set("#scene2", { opacity: 1 }, 6.0);
+
+      tl.from("#s2-mark",  { scale: 0, opacity: 0, duration: 0.5, ease: "back.out(2)" }, 6.4);
+      tl.from("#s2-label", { x: -30, opacity: 0, duration: 0.5, ease: BODY_EASE }, 6.55);
+      tl.from("#s2-body",  { y: 60, opacity: 0, duration: 0.95, ease: HEAD_EASE }, 6.75);
+
+      tl.to("#scene2", { opacity: 0, duration: 0.6, ease: "power2.inOut" }, 12.5);
+      tl.set("#scene3", { opacity: 1 }, 12.5);
+
+      tl.from("#s3-energy", { y: 20, opacity: 0, duration: 0.5, ease: BODY_EASE }, 12.9);
+      tl.from("#s3-cta",    { yPercent: 100, opacity: 0, duration: 0.7, ease: HEAD_EASE }, 13.1);
+      tl.from("#s3-url",    { y: 30, opacity: 0, duration: 0.6, ease: BODY_EASE }, 13.7);
+
+      tl.to("#scene3", { opacity: 0, duration: 0.6, ease: "power2.inOut" }, 17.3);
+
+      const cycle = 8;
+      const repeats = Math.ceil(18 / cycle) - 1;
+      tl.to("#ambient", {
+        opacity: 0.55,
+        duration: cycle / 2,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: repeats * 2 + 1,
+      }, 0);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
