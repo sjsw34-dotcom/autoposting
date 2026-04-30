@@ -58,6 +58,10 @@ jobs:
           X_ACCOUNT_3_TOKEN: ${{ secrets.X_ACCOUNT_3_TOKEN }}
           X_ACCOUNT_3_SECRET: ${{ secrets.X_ACCOUNT_3_SECRET }}
           X_ACCOUNT_3_USERNAME: ${{ secrets.X_ACCOUNT_3_USERNAME }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+          ELEVENLABS_VOICE_IDS: ${{ secrets.ELEVENLABS_VOICE_IDS }}
+          ELEVENLABS_MODEL_ID: ${{ secrets.ELEVENLABS_MODEL_ID }}
           DEBUG_VIDEO: '1'
         run: |
           ARGS=""

@@ -5,7 +5,7 @@ import { stageComposition } from './template-fill';
 import { renderComposition } from './renderer';
 import { pickZodiacVariation, pickInsightVariation } from './variation-selector';
 import { themeRootCss, type VideoTheme } from './themes';
-import { generateTtsWithTimestamps } from './tts-elevenlabs';
+import { generateTtsWithTimestamps, pickVoiceId } from './tts-elevenlabs';
 import { alignmentToCaptions, captionsToHtml, captionsToGsapTweens } from './captions';
 
 const COMPOSITIONS_DIR = path.resolve(process.cwd(), 'video/compositions');
@@ -55,7 +55,8 @@ interface NarrationBuildResult {
 async function buildNarration(
   narrationText: string,
   projectDir: string,
-  fallbackDurationSec: number
+  fallbackDurationSec: number,
+  date: Date
 ): Promise<NarrationBuildResult> {
   const skipTts = process.env.SKIP_TTS === '1' || !process.env.ELEVENLABS_API_KEY;
 
@@ -72,9 +73,11 @@ async function buildNarration(
   await fs.mkdir(projectDir, { recursive: true });
   const audioPath = path.join(projectDir, 'narration.mp3');
 
+  const voiceId = pickVoiceId(date);
+
   let result;
   try {
-    result = await generateTtsWithTimestamps(narrationText, audioPath);
+    result = await generateTtsWithTimestamps(narrationText, audioPath, { voiceId });
   } catch (err) {
     console.warn(`[narration] TTS failed, falling back to silent: ${err instanceof Error ? err.message : err}`);
     return { vars: silent, audioPath: null };
@@ -97,6 +100,9 @@ async function buildNarration(
 
 export interface ZodiacVideoResult {
   outputPath: string;
+  /** mp3 narration written next to the rendered MP4. Caller must mux it
+   *  onto outputPath via lib/video/mux-audio if non-null. */
+  audioPath: string | null;
   caption: string;
   featuredSign: string;
   variant: string;
@@ -176,7 +182,7 @@ export async function buildZodiacVideo(
     cta: ctaLine,
   });
 
-  const narration = await buildNarration(narrationText, stagingDir, variation.layout.durationSec);
+  const narration = await buildNarration(narrationText, stagingDir, variation.layout.durationSec, date);
 
   const projectDir = await stageComposition(
     path.join(COMPOSITIONS_DIR, variation.layout.file),
@@ -222,6 +228,7 @@ export async function buildZodiacVideo(
 
   return {
     outputPath: result.outputPath,
+    audioPath: narration.audioPath,
     caption,
     featuredSign: featured.animal,
     variant: variation.layout.id,
@@ -243,6 +250,7 @@ export async function buildInsightVideo(
   date: Date = new Date()
 ): Promise<{
   outputPath: string;
+  audioPath: string | null;
   durationMs: number;
   variant: string;
   element: string;
@@ -260,7 +268,7 @@ export async function buildInsightVideo(
     `${input.cta ?? 'Read yours free'} at sajumuse dot com.`,
   ].join(' ');
 
-  const narration = await buildNarration(narrationText, stagingDir, variation.layout.durationSec);
+  const narration = await buildNarration(narrationText, stagingDir, variation.layout.durationSec, date);
 
   const projectDir = await stageComposition(
     path.join(COMPOSITIONS_DIR, variation.layout.file),
@@ -282,6 +290,7 @@ export async function buildInsightVideo(
   // Audio mux happens in the parent process (see buildZodiacVideo note above).
   return {
     outputPath: result.outputPath,
+    audioPath: narration.audioPath,
     durationMs: result.durationMs,
     variant: variation.layout.id,
     element: variation.theme.id,

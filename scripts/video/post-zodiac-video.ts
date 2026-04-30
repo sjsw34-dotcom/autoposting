@@ -10,6 +10,7 @@
  */
 import 'dotenv/config';
 import { buildZodiacVideo } from '../../lib/video/saju-video-adapter';
+import { muxInPlace } from '../../lib/video/mux-audio';
 import { postXVideo } from '../../lib/video/x-video-upload';
 
 async function main() {
@@ -21,6 +22,14 @@ async function main() {
 
   const built = await buildZodiacVideo(new Date());
   console.log(`[zodiac-video] rendered ${built.featuredSign}: ${built.outputPath} (${built.durationMs}ms)`);
+
+  if (built.audioPath) {
+    console.log(`[zodiac-video] muxing narration audio onto silent MP4`);
+    await muxInPlace(built.outputPath, built.audioPath);
+    console.log(`[zodiac-video] mux complete`);
+  } else {
+    console.log(`[zodiac-video] no audio (TTS skipped or failed) — uploading silent`);
+  }
 
   if (dryRun) {
     console.log('[zodiac-video] --dry-run set, skipping X upload');
