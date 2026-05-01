@@ -17,6 +17,7 @@ const RAW_KEYS = new Set<string>([
   'AUDIO_HTML',
   'CAPTIONS_HTML',
   'CAPTIONS_GSAP',
+  'ZODIAC_ICON_SVG',
 ]);
 
 /**

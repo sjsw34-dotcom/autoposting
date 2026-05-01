@@ -9,9 +9,36 @@
  * Use `--dry-run` to render only and skip the X upload.
  */
 import 'dotenv/config';
+import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { buildZodiacVideo } from '../../lib/video/saju-video-adapter';
 import { muxInPlace } from '../../lib/video/mux-audio';
 import { postXVideo } from '../../lib/video/x-video-upload';
+
+const require_ = createRequire(__filename);
+
+/**
+ * Probe an MP4 for audio stream presence using ffprobe-static.
+ * Returns true if at least one audio stream exists.
+ * Best-effort: returns null if probe fails for any reason.
+ */
+function hasAudioStream(mp4Path: string): boolean | null {
+  try {
+    const ffprobe = (require_('ffprobe-static') as { path?: string }).path;
+    if (!ffprobe) return null;
+    const r = spawnSync(ffprobe, [
+      '-v', 'error',
+      '-select_streams', 'a',
+      '-show_entries', 'stream=codec_type',
+      '-of', 'csv=p=0',
+      mp4Path,
+    ]);
+    if (r.status !== 0) return null;
+    return r.stdout.toString().trim().length > 0;
+  } catch {
+    return null;
+  }
+}
 
 async function main() {
   const dryRun = process.argv.includes('--dry-run');
@@ -29,6 +56,20 @@ async function main() {
     console.log(`[zodiac-video] mux complete`);
   } else {
     console.log(`[zodiac-video] no audio (TTS skipped or failed) — uploading silent`);
+    if (!process.env.ELEVENLABS_API_KEY) {
+      console.warn(`[zodiac-video] WARN: ELEVENLABS_API_KEY is empty in this environment — set the GitHub secret to enable narration`);
+    }
+  }
+
+  // Hard verification right before upload — pre-empts the silent-video class of bugs
+  // by surfacing the actual stream layout in the workflow log.
+  const audioOk = hasAudioStream(built.outputPath);
+  if (audioOk === true) {
+    console.log(`[zodiac-video] verified: output has audio stream`);
+  } else if (audioOk === false) {
+    console.warn(`[zodiac-video] WARN: output has NO audio stream — X post will be silent`);
+  } else {
+    console.log(`[zodiac-video] (audio probe inconclusive — proceeding)`);
   }
 
   if (dryRun) {

@@ -7,6 +7,7 @@ import { pickZodiacVariation, pickInsightVariation } from './variation-selector'
 import { themeRootCss, type VideoTheme } from './themes';
 import { generateTtsWithTimestamps, pickVoiceId } from './tts-elevenlabs';
 import { alignmentToCaptions, captionsToHtml, captionsToGsapTweens } from './captions';
+import { zodiacIconSvg, branchHanja } from './zodiac-icons';
 
 const COMPOSITIONS_DIR = path.resolve(process.cwd(), 'video/compositions');
 const WORK_ROOT = path.resolve(process.cwd(), 'video/.work');
@@ -194,6 +195,8 @@ export async function buildZodiacVideo(
       SIGN_SUBLINE: subline,
       FORTUNE_TEXT: featured.fortune,
       CTA_LINE: ctaLine.toUpperCase(),
+      ZODIAC_ICON_SVG: zodiacIconSvg(featured.animal),
+      ZODIAC_BRANCH: branchHanja(featured.animal),
     },
     WORK_ROOT,
     jobId

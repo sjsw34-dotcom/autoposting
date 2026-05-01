@@ -82,6 +82,43 @@
         background: var(--accent);
         transform-origin: left center;
       }
+      .scene .top { position: relative; }
+      .zodiac-icon {
+        position: absolute;
+        top: 80px;
+        right: 60px;
+        width: 420px;
+        height: 420px;
+        color: var(--accent);
+        z-index: 3;
+        pointer-events: none;
+      }
+      .zodiac-icon::before {
+        content: "";
+        position: absolute;
+        inset: -50px;
+        background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 65%);
+        z-index: -1;
+        filter: blur(10px);
+      }
+      .zodiac-svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+      .zodiac-icon.s2 {
+        top: 60px;
+        right: 60px;
+        width: 280px;
+        height: 280px;
+        opacity: 0.55;
+      }
+      .zodiac-icon.s3 {
+        top: 120px;
+        right: 80px;
+        width: 360px;
+        height: 360px;
+      }
       .footer-tag {
         position: absolute;
         bottom: 60px;
@@ -136,9 +173,10 @@
 
         <div class="scene s1" id="scene1">
           <div class="top">
+            <div class="zodiac-icon" id="s1-icon">__ZODIAC_ICON_SVG__</div>
             <div class="energy-chip" id="s1-energy">__ENERGY_LABEL__</div>
             <div class="label" id="s1-label">__DATE_LABEL__</div>
-            <div class="headline-xl" id="s1-headline">__SIGN_HEADLINE__</div>
+            <div class="headline-xl" id="s1-headline" style="font-size:180px;max-width:580px;">__SIGN_HEADLINE__</div>
           </div>
           <div class="bottom">
             <div class="accent-strip" id="s1-strip" style="width:160px;"></div>
@@ -148,6 +186,7 @@
 
         <div class="scene s2" id="scene2">
           <div class="top">
+            <div class="zodiac-icon s2" id="s2-icon">__ZODIAC_ICON_SVG__</div>
             <div class="label" id="s2-label">TODAY'S READING</div>
             <div class="accent-strip" id="s2-strip" style="width:200px;"></div>
             <div class="quote large" id="s2-quote" style="max-width:940px;">__FORTUNE_TEXT__</div>
@@ -159,6 +198,7 @@
 
         <div class="scene s3" id="scene3">
           <div class="top">
+            <div class="zodiac-icon s3" id="s3-icon">__ZODIAC_ICON_SVG__</div>
             <div class="label" id="s3-label">SAJU · KOREAN ASTROLOGY</div>
             <div class="headline-xl" id="s3-cta" style="font-size:140px;">__CTA_LINE__</div>
           </div>
@@ -184,14 +224,18 @@
       // Scene 1 — split top/bottom with staggered slide-ins from opposite sides
       tl.from("#s1-energy",   { x: -40, opacity: 0, duration: 0.5, ease: BODY_EASE }, 0.15);
       tl.from("#s1-label",    { x: -40, opacity: 0, duration: 0.5, ease: BODY_EASE }, 0.3);
-      tl.from("#s1-headline", { x: -120, opacity: 0, duration: 0.95, ease: HEAD_EASE }, 0.5);
-      tl.from("#s1-strip",    { scaleX: 0, opacity: 0, duration: 0.55, ease: "expo.out" }, 1.0);
-      tl.from("#s1-sub",      { x: 60, opacity: 0, duration: 0.7, ease: BODY_EASE }, 1.15);
+      tl.from("#s1-icon",     { scale: 0.4, rotate: 12, opacity: 0, duration: 1.0, ease: "back.out(1.5)", transformOrigin: "50% 50%" }, 0.4);
+      tl.from("#s1-headline", { x: -120, opacity: 0, duration: 0.95, ease: HEAD_EASE }, 0.7);
+      tl.from("#s1-strip",    { scaleX: 0, opacity: 0, duration: 0.55, ease: "expo.out" }, 1.2);
+      tl.from("#s1-sub",      { x: 60, opacity: 0, duration: 0.7, ease: BODY_EASE }, 1.35);
+      // Idle: subtle pulse on the icon
+      tl.to("#s1-icon", { scale: 1.04, duration: 2.6, ease: "sine.inOut", yoyo: true, repeat: 1, transformOrigin: "50% 50%" }, 2.5);
 
       tl.to("#scene1", { opacity: 0, duration: 0.6, ease: "power2.inOut" }, 8.0);
       tl.set("#scene2", { opacity: 1 }, 8.0);
 
       tl.from("#s2-label",  { x: -40, opacity: 0, duration: 0.5, ease: BODY_EASE }, 8.4);
+      tl.from("#s2-icon",   { scale: 0.6, opacity: 0, duration: 0.7, ease: "power2.out", transformOrigin: "50% 50%" }, 8.5);
       tl.from("#s2-strip",  { scaleX: 0, opacity: 0, duration: 0.6, ease: "expo.out" }, 8.65);
       tl.from("#s2-quote",  { y: 60, opacity: 0, duration: 0.95, ease: HEAD_EASE }, 8.8);
       tl.from("#s2-energy", { x: -40, opacity: 0, duration: 0.5, ease: BODY_EASE }, 9.4);
@@ -200,8 +244,9 @@
       tl.set("#scene3", { opacity: 1 }, 17.0);
 
       tl.from("#s3-label", { x: -40, opacity: 0, duration: 0.5, ease: BODY_EASE }, 17.4);
-      tl.from("#s3-cta",   { y: 80, opacity: 0, duration: 0.85, ease: HEAD_EASE }, 17.65);
-      tl.from("#s3-url",   { x: -40, opacity: 0, duration: 0.6, ease: BODY_EASE }, 18.3);
+      tl.from("#s3-icon",  { scale: 0.5, opacity: 0, duration: 0.75, ease: "back.out(1.4)", transformOrigin: "50% 50%" }, 17.55);
+      tl.from("#s3-cta",   { y: 80, opacity: 0, duration: 0.85, ease: HEAD_EASE }, 17.85);
+      tl.from("#s3-url",   { x: -40, opacity: 0, duration: 0.6, ease: BODY_EASE }, 18.5);
 
       tl.to("#scene3", { opacity: 0, duration: 0.7, ease: "power2.inOut" }, 24.2);
 
