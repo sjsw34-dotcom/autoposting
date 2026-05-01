@@ -5,11 +5,10 @@ name: Post daily zodiac video to X
 # Serverless can't provide.
 
 on:
-  schedule:
-    # 06:30 KST = 21:30 UTC (sits 13 minutes before the existing morning
-    # text cron at 21:43 UTC, so the video lands first and the text thread
-    # follows as a same-morning support beat)
-    - cron: '30 21 * * *'
+  # Auto-schedule disabled per user request — X auto-posting is text-only.
+  # Re-enable by uncommenting the schedule block below.
+  # schedule:
+  #   - cron: '30 21 * * *'  # 06:30 KST, 13 min before the 21:43 UTC text cron
   workflow_dispatch:
     inputs:
       dry_run:
